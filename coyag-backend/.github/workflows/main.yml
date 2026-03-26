@@ -1,0 +1,46 @@
+name: Deploy Laravel App
+on:
+  push:
+    branches:
+      - main  # Adjust this as necessary for your workflow
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup PHP, with Composer and extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql
+          tools: composer:v2
+  
+      - name: Install PHP dependencies
+        run: composer install --prefer-dist --no-progress --no-suggest
+
+      - name: Deploy to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          source: "."
+          target: "/var/www/html"
+
+      - name: Run migrations on production server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: 22
+          script: |
+            cd /var/www/html
+            php artisan migrate --force
+            php artisan optimize
+            php artisan config:cache
+            php artisan config:clear
+            sudo chown -R www-data:www-data /var/www/html/storage/framework/sessions/ && sudo chmod -R 755 /var/www/html/storage/framework/sessions/
+            sudo chown -R www-data:www-data /var/www/html/storage/framework/cache/ && sudo chmod -R 755 /var/www/html/storage/framework/cache/
+

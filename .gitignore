@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Build outputs
+coyag-frontend/dist/
+
+# Docker data
+coyag-backend/docker-compose/mysql/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+__MACOSX/
+
+# Laravel
+coyag-backend/storage/logs/*.log
+coyag-backend/storage/framework/cache/data/*
+coyag-backend/storage/framework/sessions/*
+coyag-backend/storage/framework/views/*
+coyag-backend/bootstrap/cache/*
+
+# Archives
+*.tar.gz
+*.zip
