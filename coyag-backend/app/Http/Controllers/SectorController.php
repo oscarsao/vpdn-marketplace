@@ -16,11 +16,19 @@ class SectorController extends Controller
      */
     public function index()
     {
-        $sectors = Sector::select('id as id_sector', 'name as name_sector', 'created_at as created_at_sector', 'updated_at as updated_at_sector')->orderBy('name');
-
-        $sectors = $sectors->withCount(['business' => function ($query) {
-            $query->where('flag_active', true)->where('business_type_id', 1);
-        }])->get();
+        // Optimized: single query with LEFT JOIN instead of N+1 withCount
+        $sectors = DB::select("
+            SELECT s.id as id_sector, s.name as name_sector, s.created_at as created_at_sector, s.updated_at as updated_at_sector,
+                   COALESCE(counts.business_count, 0) as business_count
+            FROM sectors s
+            LEFT JOIN (
+                SELECT bs.sector_id, COUNT(DISTINCT bs.business_id) as business_count
+                FROM business_sector bs
+                INNER JOIN businesses b ON b.id = bs.business_id AND b.flag_active = 1 AND b.business_type_id = 1 AND b.deleted_at IS NULL
+                GROUP BY bs.sector_id
+            ) counts ON counts.sector_id = s.id
+            ORDER BY s.name
+        ");
 
         return response()->json([
             'status' => 'success',
