@@ -18,21 +18,44 @@ function onMouseLeave() {
   showQuickView.value = false
 }
 
+// Normalize field names from API (name_business → name, investment_business → investment, etc.)
+const b = computed(() => {
+  const raw = props.business
+  return {
+    ...raw,
+    id: raw.id_business || raw.id,
+    id_code: raw.id_code_business || raw.id_code,
+    name: raw.name_business || raw.name,
+    investment: raw.investment_business || raw.investment,
+    rental: raw.rental || raw.rental_business,
+    size: raw.size_business || raw.size,
+    times_viewed: raw.times_viewed_business || raw.times_viewed,
+    lat: raw.lat_business || raw.lat,
+    lng: raw.lng_business || raw.lng,
+    flag_outstanding: raw.flag_outstanding,
+    flag_sold: raw.sold || raw.flag_sold,
+    source_platform: raw.source_platform,
+    sector: raw.sector,
+    municipality_name: raw.name_municipality || raw.municipality?.name,
+    district_name: raw.name_district || raw.district?.name,
+    province_name: raw.name_province || raw.province?.name,
+    business_type_name: raw.name_business_type || raw.business_type?.name,
+  }
+})
+
 const eurPerSqm = computed(() => {
-  const b = props.business
-  return b.size > 0 ? Math.round((b.investment || 0) / b.size) : 0
+  return b.value.size > 0 ? Math.round((b.value.investment || 0) / b.value.size) : 0
 })
 const roiEstimate = computed(() => {
-  const b = props.business
-  if (!b.rental || !b.investment) return null
-  return (((b.rental * 12 * 0.6) / b.investment) * 100).toFixed(1)
+  if (!b.value.rental || !b.value.investment) return null
+  return (((b.value.rental * 12 * 0.6) / b.value.investment) * 100).toFixed(1)
 })
 
 const businessStore = useBusinessStore()
 const compareStore = useCompareStore()
 
 const isFavorite = computed(() =>
-  businessStore.favorites.includes(props.business.id)
+  businessStore.favorites.includes(b.value.id)
 )
 
 const formatMoney = (amount) => {
@@ -44,11 +67,11 @@ const formatMoney = (amount) => {
   }).format(amount)
 }
 
-const formattedPrice = computed(() => formatMoney(props.business.investment))
-const formattedRent = computed(() => formatMoney(props.business.rental))
+const formattedPrice = computed(() => formatMoney(b.value.investment))
+const formattedRent = computed(() => formatMoney(b.value.rental))
 
 const typeLabel = computed(() => {
-  const typeStr = props.business.business_type?.name?.toLowerCase() || ''
+  const typeStr = (b.value.business_type_name || '').toLowerCase()
   if (typeStr.includes('franquicia')) return 'Franquicia'
   if (typeStr.includes('inmueble')) return 'Inmueble'
   return 'Traspaso'
@@ -61,14 +84,29 @@ const typeBadgeClass = computed(() => {
 })
 
 const imageUrl = computed(() => {
+  // Try multimedia array first
   if (props.business.multimedia?.length) return props.business.multimedia[0].url || props.business.multimedia[0].full_path
+  // Then try business_images_string (semicolon-separated URLs from API)
+  if (props.business.business_images_string) {
+    const firstImage = props.business.business_images_string.split(';')[0]
+    if (firstImage) return firstImage
+  }
   return null
 })
+
+const imageCount = computed(() => {
+  if (props.business.multimedia?.length) return props.business.multimedia.length
+  if (props.business.business_images_string) return props.business.business_images_string.split(';').filter(Boolean).length
+  return 0
+})
+
+const imgError = ref(false)
+const handleImageError = () => { imgError.value = true }
 </script>
 
 <template>
   <router-link
-    :to="`/negocio/${business.id_code || business.id}`"
+    :to="`/negocio/${b.id_code || b.id}`"
     class="bg-white rounded-2xl shadow-sm border border-gray-100 block no-underline group hover:shadow-xl transition-all duration-300 relative overflow-hidden flex flex-col h-full"
     @mouseenter="onMouseEnter"
     @mouseleave="onMouseLeave"
@@ -76,14 +114,18 @@ const imageUrl = computed(() => {
     <!-- Top Image Area -->
     <div class="relative h-40 md:h-52 bg-gray-100 overflow-hidden shrink-0">
       <img
-        v-if="imageUrl"
+        v-if="imageUrl && !imgError"
         :src="imageUrl"
-        :alt="business.title || business.name"
+        :alt="b.name"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         loading="lazy"
+        @error="handleImageError"
       />
-      <div v-else class="absolute inset-0 flex items-center justify-center bg-gray-50">
-        <AppIcon name="building" :size="48" class="text-gray-300" />
+      <div v-else class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+        <div class="text-center">
+          <AppIcon name="building" :size="48" class="text-gray-300" />
+          <p class="text-xs text-gray-400 mt-2">Sin imagen</p>
+        </div>
       </div>
 
       <!-- Gradient Overlay -->
@@ -105,16 +147,16 @@ const imageUrl = computed(() => {
       <!-- Action Buttons Top Right -->
       <div class="absolute top-3 right-3 md:top-4 md:right-4 flex flex-col gap-1.5 md:gap-2">
         <button
-          @click.prevent="businessStore.toggleFavorite(business.id)"
+          @click.prevent="businessStore.toggleFavorite(b.id)"
           class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/95 flex items-center justify-center border-none cursor-pointer transition shadow-md hover:scale-110 z-10"
           title="Guardar Favorito"
         >
           <AppIcon name="heart" :size="18" :class="isFavorite ? 'text-red-500' : 'text-gray-300'" />
         </button>
         <button
-          @click.prevent="compareStore.toggle(business)"
+          @click.prevent="compareStore.toggle(b)"
           class="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center border-none cursor-pointer transition shadow-md hover:scale-110 z-10"
-          :class="compareStore.isInCompare(business.id) ? 'bg-red-50 text-[var(--color-primary)] ring-2 ring-[var(--color-primary)]' : 'bg-white/95 text-gray-400 hover:text-gray-600'"
+          :class="compareStore.isInCompare(b.id) ? 'bg-red-50 text-[var(--color-primary)] ring-2 ring-[var(--color-primary)]' : 'bg-white/95 text-gray-400 hover:text-gray-600'"
           title="Comparar"
         >
           <AppIcon name="scale" :size="18" />
@@ -125,13 +167,13 @@ const imageUrl = computed(() => {
       <div class="absolute bottom-3 left-3 right-3 md:bottom-4 md:left-4 md:right-4 flex justify-between items-end text-white">
         <div>
           <span class="text-xl md:text-2xl font-extrabold shadow-sm tracking-tight">{{ formattedPrice }}</span>
-          <p v-if="business.rental > 0" class="text-sm font-medium text-gray-200 mt-1 flex items-center gap-1">
+          <p v-if="b.rental > 0" class="text-sm font-medium text-gray-200 mt-1 flex items-center gap-1">
             <span class="text-gray-400">Alquiler:</span> {{ formattedRent }} /mes
           </p>
         </div>
         <div class="text-right">
           <span class="bg-black/40 backdrop-blur-md px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
-            <AppIcon name="photo" :size="12" /> {{ business.multimedia?.length || 0 }}
+            <AppIcon name="photo" :size="12" /> {{ imageCount }}
           </span>
         </div>
       </div>
@@ -143,12 +185,12 @@ const imageUrl = computed(() => {
       <!-- Title & Location -->
       <div class="mb-3 md:mb-4">
         <h3 class="text-base md:text-lg font-bold mb-1.5 md:mb-2 leading-tight text-gray-900 group-hover:text-[var(--color-primary)] transition-colors line-clamp-2">
-          {{ business.name }}
+          {{ b.name }}
         </h3>
         <p class="text-sm font-medium text-gray-500 flex items-start gap-1.5">
           <AppIcon name="map-pin" :size="14" class="mt-0.5 shrink-0 text-gray-400" />
           <span class="line-clamp-1">
-            {{ business.neighborhood?.name || business.municipality?.name || business.address || 'Ubicacion no disponible' }}
+            {{ b.district_name || b.municipality_name || b.province_name || 'Ubicacion no disponible' }}
           </span>
         </p>
       </div>
@@ -157,50 +199,48 @@ const imageUrl = computed(() => {
       <div class="flex gap-3 md:gap-4 mb-3 md:mb-5 pt-3 md:pt-4 border-t border-gray-100">
         <div class="flex items-center gap-1.5 text-sm text-gray-700">
           <AppIcon name="building" :size="14" class="text-gray-400" />
-          <span class="font-semibold">{{ business.size || '--' }} m2</span>
+          <span class="font-semibold">{{ b.size || '--' }} m2</span>
         </div>
-        <div v-if="business.days_on_market" class="flex items-center gap-1.5 text-sm text-gray-500">
-          <AppIcon name="clock" :size="14" class="text-gray-400" />
-          <span class="font-medium">{{ business.days_on_market }}d</span>
+        <div v-if="b.source_platform" class="flex items-center gap-1.5 text-sm text-gray-500">
+          <AppIcon name="globe" :size="14" class="text-gray-400" />
+          <span class="font-medium">{{ b.source_platform }}</span>
         </div>
-        <div v-if="business.times_viewed" class="flex items-center gap-1.5 text-sm text-gray-500">
+        <div v-if="b.times_viewed" class="flex items-center gap-1.5 text-sm text-gray-500">
           <AppIcon name="eye" :size="14" class="text-gray-400" />
-          <span class="font-medium">{{ business.times_viewed }}</span>
+          <span class="font-medium">{{ b.times_viewed }}</span>
         </div>
-        <div v-if="business.flag_outstanding" class="flex items-center gap-1.5 text-sm text-amber-600 ml-auto">
+        <div v-if="b.flag_outstanding" class="flex items-center gap-1.5 text-sm text-amber-600 ml-auto">
           <AppIcon name="fire" :size="14" />
           <span class="font-semibold">Destacado</span>
         </div>
       </div>
 
       <!-- User Compatibility -->
-      <div v-if="business.showCompatibility" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-indigo-50/70 border border-indigo-100">
+      <!-- User Compatibility (only shown if data available) -->
+      <div v-if="props.business.showCompatibility" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-indigo-50/70 border border-indigo-100">
         <div class="relative w-7 h-7 shrink-0">
           <svg viewBox="0 0 36 36" class="w-7 h-7 -rotate-90">
             <circle cx="18" cy="18" r="14" fill="none" stroke="#E0E7FF" stroke-width="3" />
             <circle cx="18" cy="18" r="14" fill="none" stroke="#6366F1" stroke-width="3" stroke-linecap="round"
-              :stroke-dasharray="`${business.userCompatibility * 0.88} 88`" />
+              :stroke-dasharray="`${props.business.userCompatibility * 0.88} 88`" />
           </svg>
-          <span class="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-indigo-700">{{ business.userCompatibility }}%</span>
+          <span class="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-indigo-700">{{ props.business.userCompatibility }}%</span>
         </div>
         <div class="flex-1 min-w-0">
           <span class="text-[10px] font-bold text-indigo-700 block">Compatible contigo</span>
-          <span v-if="business.userCompatibilityReasons?.length" class="text-[9px] text-indigo-400 truncate block">
-            {{ business.userCompatibilityReasons.slice(0, 3).join(' · ') }}
-          </span>
         </div>
       </div>
 
       <!-- Footer Area -->
       <div class="mt-auto pt-4 border-t border-gray-100 flex flex-col gap-3">
         <!-- Sectors Tags -->
-        <div class="flex flex-wrap gap-1.5" v-if="business.sectors?.length">
+        <div class="flex flex-wrap gap-1.5" v-if="b.sector">
           <span
-            v-for="(sector, idx) in business.sectors.slice(0, 3)"
-            :key="sector.id || sector.ID || idx"
+            v-for="(sectorName, idx) in b.sector.split(', ').slice(0, 3)"
+            :key="idx"
             class="text-[10px] uppercase font-bold px-2 py-1 rounded bg-gray-100 text-gray-600 tracking-wider line-clamp-1"
           >
-            {{ sector.name || sector.NAME || (typeof sector === 'string' ? sector : '') }}
+            {{ sectorName }}
           </span>
         </div>
 
@@ -208,10 +248,10 @@ const imageUrl = computed(() => {
         <div class="flex items-center justify-between mt-2">
           <div class="flex items-center gap-2">
             <span class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-700 flex items-center justify-center text-xs font-bold">
-              {{ business.employee ? business.employee.name.charAt(0) : 'A' }}
+              V
             </span>
             <span class="text-xs font-semibold text-gray-500 truncate max-w-[100px]">
-              {{ business.employee ? business.employee.name : 'Agente VPDN' }}
+              VPDN
             </span>
           </div>
           <span class="px-2 py-1 bg-red-50 text-[var(--color-primary)] rounded text-xs font-bold whitespace-nowrap">
@@ -235,8 +275,8 @@ const imageUrl = computed(() => {
             <p class="text-sm font-bold" :class="roiEstimate && roiEstimate > 5 ? 'text-green-400' : 'text-gray-200'">{{ roiEstimate ? roiEstimate + '%' : '--' }}</p>
           </div>
           <div>
-            <p class="text-[10px] text-gray-400">Score</p>
-            <p class="text-sm font-bold">{{ business.opportunityScore || '--' }}</p>
+            <p class="text-[10px] text-gray-400">Fuente</p>
+            <p class="text-sm font-bold">{{ b.source_platform || '--' }}</p>
           </div>
         </div>
       </div>

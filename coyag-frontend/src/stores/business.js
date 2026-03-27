@@ -56,7 +56,7 @@ export const useBusinessStore = defineStore('business', {
         })
 
         const { data } = await axios.get('/business/index', { params })
-        this.businesses = data.data || data
+        this.businesses = data.businesses || data.data || data
         this.totalResults = data.total || data.length || 0
       } catch (error) {
         console.error('Error fetching businesses:', error)
