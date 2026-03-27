@@ -83,7 +83,8 @@ onMounted(async () => {
     businessStore.fetchBusiness(idCode),
     axios.get('/business/index', { params: { page: 1 } }),
   ])
-  allBusinesses.value = allBizRes.data.data || allBizRes.data
+  const rawAll = allBizRes.data.businesses || allBizRes.data.data || allBizRes.data
+  allBusinesses.value = Array.isArray(rawAll) ? rawAll : []
   similarBusinesses.value = bizData?.similarBusinesses || []
   businessTimeline.value = bizData?.timeline || []
   isLoading.value = false

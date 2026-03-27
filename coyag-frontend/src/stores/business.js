@@ -1,6 +1,50 @@
 import { defineStore } from 'pinia'
 import axios from '../api/axios'
 
+// Normalize API response fields (name_business → name, etc.)
+function normalizeBusiness(raw) {
+  if (!raw || typeof raw !== 'object') return raw
+  return {
+    ...raw,
+    id: raw.id_business || raw.id,
+    id_code: raw.id_code_business || raw.id_code,
+    name: raw.name_business || raw.name,
+    description: raw.description_business || raw.description,
+    investment: raw.investment_business || raw.investment,
+    rental: raw.rental_business || raw.rental,
+    size: raw.size_business || raw.size,
+    age: raw.age_business || raw.age,
+    times_viewed: raw.times_viewed_business || raw.times_viewed,
+    lat: raw.lat_business || raw.lat,
+    lng: raw.lng_business || raw.lng,
+    flag_outstanding: raw.flag_outstanding,
+    flag_sold: raw.sold || raw.flag_sold,
+    source_platform: raw.source_platform,
+    sector: raw.sector,
+    data_of_interest: raw.data_of_interest_business || raw.data_of_interest,
+    relevant_advantages: raw.relevant_advantages_business || raw.relevant_advantages,
+    address: raw.address_business || raw.address,
+    contact_name: raw.contact_name_business || raw.contact_name,
+    contact_email: raw.contact_email_business || raw.contact_email,
+    contact_mobile_phone: raw.contact_mobile_phone_business || raw.contact_mobile_phone,
+    // Location
+    municipality: raw.municipality || { id: raw.id_municipality, name: raw.name_municipality },
+    district: raw.district || { id: raw.id_district, name: raw.name_district },
+    neighborhood: raw.neighborhood || { id: raw.id_neighborhood, name: raw.name_neighborhood },
+    province: raw.province || { id: raw.id_province, name: raw.name_province },
+    autonomous_community: raw.autonomous_community || { id: raw.id_autonomous_community, name: raw.name_autonomous_community },
+    business_type: raw.business_type || { id: raw.id_business_type, name: raw.name_business_type },
+    // Images: parse semicolon-separated string into array of objects
+    multimedia: raw.multimedia || (raw.business_images_string
+      ? raw.business_images_string.split(';').filter(Boolean).map((url, i) => ({ url, id: i }))
+      : []),
+    // Videos
+    videos: raw.videos || (raw.business_videos_string
+      ? raw.business_videos_string.split(';').filter(Boolean).map((url, i) => ({ url, id: i }))
+      : []),
+  }
+}
+
 export const useBusinessStore = defineStore('business', {
   state: () => ({
     businesses: [],
@@ -56,7 +100,8 @@ export const useBusinessStore = defineStore('business', {
         })
 
         const { data } = await axios.get('/business/index', { params })
-        this.businesses = data.businesses || data.data || data
+        const rawList = data.businesses || data.data || data
+        this.businesses = Array.isArray(rawList) ? rawList.map(normalizeBusiness) : rawList
         this.totalResults = data.total || data.length || 0
       } catch (error) {
         console.error('Error fetching businesses:', error)
@@ -69,8 +114,9 @@ export const useBusinessStore = defineStore('business', {
       this.loading = true
       try {
         const { data } = await axios.get(`/business/show/${idCode}`)
-        this.currentBusiness = data
-        return data
+        const raw = data.business || data
+        this.currentBusiness = normalizeBusiness(raw)
+        return this.currentBusiness
       } catch (error) {
         console.error('Error fetching business:', error)
         return null
