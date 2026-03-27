@@ -272,7 +272,7 @@ class BusinessController extends Controller
         $perPage = $request->exists('perPage') ? (int) $request->perPage : 12; // Default lowest per page, cast to int
         $offset = ($page - 1) * $perPage;
         
-        $businesses = $businesses->offset($offset)->limit($page*$perPage)->get();
+        $businesses = $businesses->offset($offset)->limit($perPage)->get();
         
         for ($i = 0; $i < count($businesses); $i++) {
             // CHECK IF IT RETURNS AND ARRAY
@@ -989,7 +989,7 @@ class BusinessController extends Controller
         $perPage = $request->exists('perPage') ? (int) $request->perPage : 12; // Default lowest per page, cast to int
         $offset = ($page - 1) * $perPage;
         
-        $businesses = $businesses->offset($offset)->limit($page*$perPage)->get();
+        $businesses = $businesses->offset($offset)->limit($perPage)->get();
         
         for ($i = 0; $i < count($businesses); $i++) {
             // CHECK IF IT RETURNS AND ARRAY
@@ -1081,7 +1081,20 @@ class BusinessController extends Controller
                 $query->select('business_id', DB::raw('GROUP_CONCAT(sector_id) as sector_ids'))->from('business_sector')->groupBy('business_id');
             }, 'subquery', 'subquery.business_id', '=', 'businesses.id');
 
-        $businesses = $businesses->get();
+        // Apply sector filter at DB level when possible
+        if ($request->exists('sectors')) {
+            $sectorIds = explode(',', str_replace(' ', '', $request->sectors));
+            $businesses = $businesses->whereIn('subquery.sector_ids', $sectorIds);
+        }
+
+        $total = $businesses->count();
+
+        $page = $request->exists('page') ? (int) $request->page : 1;
+        if ($page <= 1) $page = 1;
+        $perPage = $request->exists('perPage') ? (int) $request->perPage : 12;
+        $offset = ($page - 1) * $perPage;
+
+        $businesses = $businesses->offset($offset)->limit($perPage)->get();
 
         $sector_map = array();
         $sectors = DB::table("sectors")->get();
@@ -1089,7 +1102,7 @@ class BusinessController extends Controller
             $sector_map[$sector->id] = $sector->name;
         }
 
-        $arrBusiness = [];
+        $arrBR = [];
         for ($i = 0; $i < count($businesses); $i++) {
             // CHECK IF IT RETURNS AND ARRAY
             if (is_null($businesses[$i]["sector_ids"])) {
@@ -1098,9 +1111,6 @@ class BusinessController extends Controller
                 $business_sectors = explode(",", $businesses[$i]["sector_ids"]);
             }
 
-
-
-            $keepBusiness = false;
             $sectorsStr = '';
             $sectorTotal = count($business_sectors);
 
@@ -1110,8 +1120,6 @@ class BusinessController extends Controller
                     $sectorsStr =  $sectorsStr . $sector_map[$business_sectors[$j]]; //Retiré el id_sector
                 if ($j != ($sectorTotal - 1))
                     $sectorsStr = $sectorsStr . ',';
-                if ($request->exists('sectors'))
-                    $keepBusiness = $keepBusiness || in_array($business_sectors[$j], explode(',', str_replace(' ', '', $request->sectors)));
             }
 
             $businesses[$i]['sector'] = $sectorsStr;
@@ -1119,33 +1127,22 @@ class BusinessController extends Controller
             $businesses[$i]['business_images_string'] = explode(';', $businesses[$i]['business_images_string'])[0];
             $businesses[$i]['business_videos_string'] = explode(';', $businesses[$i]['business_videos_string'])[0];
 
-            if ($request->exists('sectors')) {
-                if ($keepBusiness) array_push($arrBusiness, $businesses[$i]);
-            } else {
-                array_push($arrBusiness, $businesses[$i]);
-            }
-        }
-
-
-        $arrBR = [];
-
-        for ($i = 0; $i < count($arrBusiness); $i++) {
-            $arrBusiness[$i]['recommended'] = 0; // Por default los negocios no están recomendados
+            $businesses[$i]['recommended'] = 0; // Por default los negocios no están recomendados
             $auxAdd = false;
 
-            if ($arrBusiness[$i]->recommendation_finished_at == null) {
-                array_push($arrBR, $arrBusiness[$i]);
+            if ($businesses[$i]->recommendation_finished_at == null) {
+                array_push($arrBR, $businesses[$i]);
                 $auxAdd = true;
             } else {
-                $fineshedR = Carbon::createFromFormat('Y-m-d', $arrBusiness[$i]->recommendation_finished_at);
+                $fineshedR = Carbon::createFromFormat('Y-m-d', $businesses[$i]->recommendation_finished_at);
                 $today = Carbon::now()->format('Y-m-d');
                 if ($today > $fineshedR) {
-                    array_push($arrBR, $arrBusiness[$i]);
+                    array_push($arrBR, $businesses[$i]);
                     $auxAdd = true;
                 } else {
                     if (isset(Auth::user()->client->id)) {
-                        if ($this->businessClientRecommendation($arrBusiness[$i]->id_business, Auth::user()->client->id)) {
-                            array_push($arrBR, $arrBusiness[$i]);
+                        if ($this->businessClientRecommendation($businesses[$i]->id_business, Auth::user()->client->id)) {
+                            array_push($arrBR, $businesses[$i]);
                             $auxAdd = true;
                         }
                     }
@@ -1154,25 +1151,13 @@ class BusinessController extends Controller
 
             if (isset(Auth::user()->client->id) && $auxAdd) {
                 $currentIndex = count($arrBR) - 1;
-                if ($this->businessClientRecommendation($arrBusiness[$i]->id_business, Auth::user()->client->id))
+                if ($this->businessClientRecommendation($businesses[$i]->id_business, Auth::user()->client->id))
                     $arrBR[$currentIndex]['recommended'] = 1;
             }
         }
 
-        $total = count($arrBR);
-        $response = array('total'   => $total, 'status'  =>  'success');
-        if (!$request->exists('page') && !$request->exists('perPage')) {
-            $finalResult = $arrBR;
-        } else {
-            $page = $request->exists('page') ? (int) $request->page : 1; // Initial page, cast to int
-            $response['page'] = $page;
-            if ($page <= 1) $page = 1;
-            $perPage = $request->exists('perPage') ? (int) $request->perPage : 12; // Default lowest per page, cast to int
-            $offset = ($page - 1) * $perPage;
-            $finalResult = array_slice($arrBR, $offset, $perPage);
-        }
-        $response['items']      = count($finalResult);
-        $response['businesses'] = $finalResult;
+        $response = array('total' => $total, 'status' => 'success', 'page' => $page, 'items' => count($arrBR));
+        $response['businesses'] = $arrBR;
 
         if (isset(Auth::user()->client->id) && $request->exists('add_timeline') && $request->add_timeline == 1)
             addClientTimeline(Auth::user()->client->id, 1, 'Business', 'list', true, $request->all());
@@ -1540,13 +1525,28 @@ class BusinessController extends Controller
             $businesses = $businesses->select('businesses.id', 'businesses.name', 'businesses.investment', 'businesses.rental', 'businesses.contact_name', 'businesses.contact_landline', 'provinces.name as province', 'municipalities.name as municipality', 'districts.name as district', 'neighborhoods.name as neighborhood', 'business_types.name as type', 'businesses.rooms', 'businesses.bathrooms', 'sector_ids', 'source_timestamp', 'business_images_string')->leftJoinSub(function ($query) {
                 $query->select('business_id', DB::raw('GROUP_CONCAT(sector_id) as sector_ids'))
                     ->from('business_sector')->groupBy('business_id');
-            }, 'subquery', 'subquery.business_id', '=', 'businesses.id')->get();
+            }, 'subquery', 'subquery.business_id', '=', 'businesses.id');
+
+            // Apply sector filter at DB level when possible
+            if ($request->exists('sector')) {
+                $sectorIds = explode(',', str_replace(' ', '', $request->sector));
+                $businesses = $businesses->whereIn('subquery.sector_ids', $sectorIds);
+            }
+
+            $total = $businesses->count();
+
+            $page = $request->exists('page') ? (int) $request->page : 1;
+            if ($page <= 1) $page = 1;
+            $perPage = $request->exists('perPage') ? (int) $request->perPage : 12;
+            $offset = ($page - 1) * $perPage;
+
+            $businesses = $businesses->offset($offset)->limit($perPage)->get();
+
             $sector_map = array();
             $sectors = DB::table("sectors")->get();
             foreach ($sectors as $sector) {
                 $sector_map[$sector->id] = $sector->name;
             }
-            $arrBusiness = [];
 
             for ($i = 0; $i < count($businesses); $i++) {
                 // CHECK IF IT RETURNS AND ARRAY
@@ -1556,7 +1556,6 @@ class BusinessController extends Controller
                     $business_sectors = explode(",", $businesses[$i]["sector_ids"]);
                 }
 
-                $keepBusiness = false;
                 $sectorsStr = '';
                 $sectorTotal = count($business_sectors);
 
@@ -1567,9 +1566,6 @@ class BusinessController extends Controller
 
                     if ($j != ($sectorTotal - 1))
                         $sectorsStr = $sectorsStr . ',';
-
-                    if ($request->exists('sector'))
-                        $keepBusiness = $keepBusiness || in_array($business_sectors[$j], explode(',', str_replace(' ', '', $request->sector)));
                 }
 
                 $businesses[$i]['sectors'] = $sectorsStr;
@@ -1581,26 +1577,10 @@ class BusinessController extends Controller
                     $businesses[$i]['image'] = '';
                 }
                 unset($businesses[$i]['business_images_string']);
-
-                if ($request->exists('sector')) {
-                    if ($keepBusiness) array_push($arrBusiness, $businesses[$i]);
-                } else {
-                    array_push($arrBusiness, $businesses[$i]);
-                }
             }
 
-            $total = count($arrBusiness);
-            $response = array('total'   => $total, 'status'  =>  'success');
-
-            $page = $request->exists('page') ? $request->page : 1; // Initial page
-            if ($page <= 1) $page = 1;
-            $response['page'] = $page;
-            $perPage = $request->exists('perPage') ? $request->perPage : 12; // Default lowest per page
-            $offset = ($page - 1) * $perPage;
-            $finalResult = array_slice($arrBusiness, $offset, $perPage);
-
-            $response['items']      = count($finalResult);
-            $response['businesses'] = $finalResult;
+            $response = array('total' => $total, 'status' => 'success', 'page' => $page, 'items' => count($businesses));
+            $response['businesses'] = $businesses;
             return response()->json($response, 200);
 
         } catch (Exception $error) {

@@ -268,8 +268,9 @@ class StatisticsPropertiesController extends Controller {
                 $query->select('business_id', DB::raw('GROUP_CONCAT(sector_id) as sectors'))
                     ->from('business_sector')->groupBy('business_id');
             }, 'subquery', 'subquery.business_id', '=', 'businesses.id')
-            ->orderBy('investment');
-        
+            ->orderBy('investment')
+            ->limit(10000);
+
         if ( $property_type == 1 && $sector !== false) {
             $businesses           = $businesses          ->whereIn('sectors', [$sector]);
             $group_by_sectors     = $group_by_sectors    ->whereIn('sectors_segment_ids', [$sector]);
@@ -671,7 +672,8 @@ class StatisticsPropertiesController extends Controller {
                     $query->select('business_id', DB::raw('GROUP_CONCAT(sector_id) as sectors'))
                         ->from('business_sector')->groupBy('business_id');
                 }, 'subquery', 'subquery.business_id', '=', 'businesses.id')
-                ->orderBy('investment');
+                ->orderBy('investment')
+                ->limit(10000);
 
             /**
              * ANADIR POR LOCALIZACION LA MINIMA LOCALIZACION COMPARTIDA
