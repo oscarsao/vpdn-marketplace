@@ -8,8 +8,9 @@ const filterStatus = ref('all')
 
 onMounted(async () => {
   try {
-    const { data } = await axios.get('/leads')
-    leads.value = Array.isArray(data) ? data : []
+    const res = await axios.get('/leads')
+    const raw = res.data?.data || res.data
+    leads.value = Array.isArray(raw) ? raw : []
   } catch (e) {
     console.error(e)
   } finally {
@@ -61,6 +62,11 @@ function formatDate(d) {
 
     <div v-if="loading" class="space-y-4">
       <div v-for="i in 4" :key="i" class="c-card p-5"><div class="skeleton h-20 w-full rounded"></div></div>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="filteredLeads.length === 0" class="bg-white rounded-xl shadow-sm border border-gray-100 py-12 text-center text-gray-500">
+      No hay datos disponibles.
     </div>
 
     <!-- Lead Cards -->

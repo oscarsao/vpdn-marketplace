@@ -1,10 +1,28 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from '../../api/axios'
 
-const businesses = ref([
-  { id: 1, name: 'Restaurante Centro', sectors: 'Hostelería', status: 'Activo', price: 120000 },
-  { id: 2, name: 'Local Comercial Sur', sectors: 'Retail', status: 'Inactivo', price: 85000 },
-])
+const businesses = ref([])
+const loading = ref(true)
+const totalResults = ref(0)
+const currentPage = ref(1)
+
+const fetchBusinesses = async () => {
+  loading.value = true
+  try {
+    const res = await axios.get('/business/index', { params: { page: currentPage.value, condition: 'general' } })
+    const raw = res.data?.data || res.data?.businesses || res.data
+    businesses.value = Array.isArray(raw) ? raw : []
+    totalResults.value = res.data?.total || businesses.value.length
+  } catch (e) {
+    console.error(e)
+    businesses.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(fetchBusinesses)
 </script>
 
 <template>
@@ -14,7 +32,15 @@ const businesses = ref([
       <button class="c-btn c-btn--primary text-sm">+ Nuevo Negocio</button>
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+    <!-- Loading state -->
+    <div v-if="loading" class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+      <div class="space-y-4">
+        <div v-for="i in 4" :key="i" class="h-10 bg-gray-100 rounded animate-pulse"></div>
+      </div>
+    </div>
+
+    <!-- Data table -->
+    <div v-else-if="businesses.length > 0" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead class="bg-gray-50 text-gray-600 text-sm border-b border-gray-100">
           <tr>
@@ -29,12 +55,13 @@ const businesses = ref([
         <tbody class="text-sm">
           <tr v-for="b in businesses" :key="b.id" class="border-b border-gray-50 hover:bg-gray-50 transition">
             <td class="py-3 px-4 text-gray-500">#{{ b.id }}</td>
-            <td class="py-3 px-4 font-medium text-gray-900">{{ b.name }}</td>
-            <td class="py-3 px-4">{{ b.sectors }}</td>
-            <td class="py-3 px-4">{{ b.price }} €</td>
+            <td class="py-3 px-4 font-medium text-gray-900">{{ b.name_business || b.name || '—' }}</td>
+            <td class="py-3 px-4">{{ b.sectors || b.sector || '—' }}</td>
+            <td class="py-3 px-4">{{ b.investment_business || b.price || b.investment || 0 }} €</td>
             <td class="py-3 px-4">
-              <span class="px-2 py-1 rounded-full text-xs font-semibold" :class="b.status === 'Activo' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                {{ b.status }}
+              <span class="px-2 py-1 rounded-full text-xs font-semibold"
+                :class="(b.status === 'Activo' || b.status === 1) ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                {{ b.status === 1 ? 'Activo' : b.status === 0 ? 'Inactivo' : b.status || '—' }}
               </span>
             </td>
             <td class="py-3 px-4 text-right">
@@ -44,9 +71,14 @@ const businesses = ref([
           </tr>
         </tbody>
       </table>
-      <div v-if="businesses.length === 0" class="py-12 text-center text-gray-500">
-        No hay negocios registrados.
+      <div class="px-4 py-3 text-sm text-gray-500 border-t border-gray-100">
+        {{ totalResults }} negocio(s) en total
       </div>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else class="bg-white rounded-xl shadow-sm border border-gray-100 py-12 text-center text-gray-500">
+      No hay datos disponibles.
     </div>
   </div>
 </template>
