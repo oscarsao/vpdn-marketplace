@@ -7,12 +7,46 @@ const ai = useAiStore()
 const input = ref('')
 const chatContainer = ref(null)
 
-const suggestedTopics = [
-  'Buscar restaurante en Madrid menos de 100k',
-  'Comparar traspaso vs franquicia',
-  'Que sectores son mas rentables?',
-  'Cual es el precio medio del mercado?',
+const suggestedCategories = [
+  {
+    title: 'Búsqueda',
+    icon: 'search',
+    topics: [
+      'Buscar restaurante en Madrid menos de 100k',
+      'Peluquerías disponibles en Barcelona',
+      'Negocios con terraza en Valencia',
+    ]
+  },
+  {
+    title: 'Análisis',
+    icon: 'chart',
+    topics: [
+      '¿Qué sectores son más rentables?',
+      '¿Cuál es el precio medio del mercado?',
+      'Comparar traspaso vs franquicia',
+    ]
+  },
+  {
+    title: 'Inversión',
+    icon: 'currency',
+    topics: [
+      '¿Qué negocio puedo montar con 50.000€?',
+      'ROI estimado de un bar en centro de Madrid',
+      'Mejores zonas para invertir en hostelería',
+    ]
+  },
+  {
+    title: 'Asesoramiento',
+    icon: 'info',
+    topics: [
+      '¿Qué debo tener en cuenta al comprar un traspaso?',
+      '¿Cómo valorar un negocio en funcionamiento?',
+      '¿Qué documentación necesito para un traspaso?',
+    ]
+  },
 ]
+// Flatten for backward compatibility
+const suggestedTopics = suggestedCategories.flatMap(c => c.topics)
 
 onMounted(() => {
   ai.clearBusinessContext()
@@ -86,17 +120,29 @@ function formatMarkdown(text) {
         </div>
 
         <!-- Suggested topics when empty -->
-        <div v-if="ai.chatMessages.length <= 1 && !ai.loading" class="mt-6">
-          <p class="text-xs font-semibold text-gray-400 uppercase mb-3">Sugerencias</p>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="topic in suggestedTopics"
-              :key="topic"
-              @click="useSuggestion(topic)"
-              class="px-3 py-2 text-xs font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors border-none cursor-pointer"
+        <div v-if="ai.chatMessages.length <= 1 && !ai.loading" class="mt-4">
+          <p class="text-xs font-semibold text-gray-400 uppercase mb-4">¿En qué puedo ayudarte?</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div
+              v-for="cat in suggestedCategories"
+              :key="cat.title"
+              class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm"
             >
-              {{ topic }}
-            </button>
+              <h3 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                <AppIcon :name="cat.icon" :size="16" class="text-indigo-500" />
+                {{ cat.title }}
+              </h3>
+              <div class="space-y-2">
+                <button
+                  v-for="topic in cat.topics"
+                  :key="topic"
+                  @click="useSuggestion(topic)"
+                  class="w-full text-left px-3 py-2 text-xs font-medium text-gray-600 bg-gray-50 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors border-none cursor-pointer"
+                >
+                  {{ topic }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

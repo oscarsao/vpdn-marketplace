@@ -7,14 +7,26 @@ export const useLocationStore = defineStore('location', {
     municipalities: [],
     districts: [],
     neighborhoods: [],
+    sectors: [],
     loading: false,
   }),
 
   actions: {
+    async fetchSectors() {
+      if (this.sectors.length > 0) return // Cache
+      try {
+        const { data } = await axios.get('/sector')
+        this.sectors = Array.isArray(data) ? data : (data?.data || [])
+      } catch (e) {
+        console.error('Error fetching sectors:', e)
+      }
+    },
+
     async fetchProvinces() {
+      if (this.provinces.length > 0) return // Cache: don't re-fetch
       try {
         const { data } = await axios.get('/province')
-        this.provinces = data
+        this.provinces = Array.isArray(data) ? data : (data?.data || [])
       } catch (e) {
         console.error('Error fetching provinces:', e)
       }
