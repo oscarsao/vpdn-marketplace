@@ -188,7 +188,7 @@ class AiController extends Controller
                 ->when($business->municipality_id, fn($q) => $q->where('municipality_id', $business->municipality_id))
                 ->orderByRaw('ABS(investment - ?) ASC', [$business->investment ?? 0])
                 ->limit($limit)
-                ->get(['id', 'id_code_business', 'name', 'investment', 'rental', 'size', 'lat', 'lng', 'business_images_string']);
+                ->get(['id', 'id_code', 'name', 'investment', 'rental', 'size', 'lat', 'lng', 'business_images_string']);
 
             return response()->json(['data' => $similar]);
         } catch (\Exception $e) {
@@ -248,7 +248,7 @@ class AiController extends Controller
                       ->orWhere('description', 'LIKE', "%{$query}%");
                 })
                 ->limit(20)
-                ->get(['id', 'id_code_business', 'name', 'investment', 'rental', 'size', 'lat', 'lng', 'business_images_string', 'description']);
+                ->get(['id', 'id_code', 'name', 'investment', 'rental', 'size', 'lat', 'lng', 'business_images_string', 'description']);
 
             return response()->json(['data' => $businesses]);
         } catch (\Exception $e) {

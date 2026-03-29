@@ -23,19 +23,30 @@ class FavoriteController extends Controller
      */
     public function index()
     {
-        $client = Auth::user()->client;
-        if (!$client) {
-            return response()->json(['errors' => 'No client profile found'], 404);
+        try {
+            $user = Auth::user();
+            $client = $user->client ?? null;
+            if (!$client) {
+                return response()->json([
+                    'status'         => 'success',
+                    'favorites_list' => [],
+                ]);
+            }
+
+            $favorites = $client->businesses()
+                ->where('flag_active', 1)
+                ->get(['businesses.id', 'businesses.id_code', 'businesses.name', 'businesses.investment', 'businesses.rental', 'businesses.size', 'businesses.lat', 'businesses.lng', 'businesses.business_images_string']);
+
+            return response()->json([
+                'status'         => 'success',
+                'favorites_list' => $favorites,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'         => 'success',
+                'favorites_list' => [],
+            ]);
         }
-
-        $favorites = $client->businesses()
-            ->where('flag_active', 1)
-            ->get(['businesses.id', 'id_code_business', 'name', 'investment', 'rental', 'size', 'lat', 'lng', 'business_images_string']);
-
-        return response()->json([
-            'status'         => 'success',
-            'favorites_list' => $favorites,
-        ]);
     }
 
     /**

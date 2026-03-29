@@ -1171,7 +1171,7 @@ Route::get('/activity-feed', function () {
     $recent = \App\Models\Business::where('flag_active', 1)
         ->orderBy('updated_at', 'desc')
         ->limit(10)
-        ->get(['id', 'id_code_business', 'name', 'investment', 'updated_at', 'business_images_string']);
+        ->get(['id', 'id_code', 'name', 'investment', 'updated_at', 'business_images_string']);
     return response()->json(['data' => $recent]);
 })->middleware(['auth:api']);
 
