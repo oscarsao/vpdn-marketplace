@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
+import axios from '../../api/axios'
 import AppIcon from '../ui/AppIcon.vue'
 
 const props = defineProps({
@@ -18,7 +19,17 @@ const pageTitle = computed(() => {
   return route.meta?.pageTitle || 'Portal de Negocios'
 })
 
-const notifCount = ref(3)
+const notifCount = ref(0)
+
+onMounted(async () => {
+  try {
+    const { data } = await axios.get('/notification')
+    const notifs = Array.isArray(data) ? data : []
+    notifCount.value = notifs.filter(n => !n.read).length
+  } catch (e) {
+    // Silently fail — badge stays at 0
+  }
+})
 </script>
 
 <template>

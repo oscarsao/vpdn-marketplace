@@ -117,9 +117,9 @@ function runValuation() {
       rangeLow,
       rangeHigh,
       methods: [
-        sqmValuation > 0 ? { name: 'Valoracion por m2', value: sqmValuation, desc: `${Math.round(medianSqm)} €/m2 × ${f.size} m2` } : null,
+        sqmValuation > 0 ? { name: 'Valoración por m2', value: sqmValuation, desc: `${Math.round(medianSqm)} €/m2 × ${f.size} m2` } : null,
         revenueValuation > 0 ? { name: 'Multiplicador ingresos', value: revenueValuation, desc: `${formatEur(f.monthlyRevenue)}/mes × 24 meses` } : null,
-        { name: 'Comparacion de mercado', value: marketValuation, desc: `Mediana de ${comparables.length} negocios comparables` },
+        { name: 'Comparación de mercado', value: marketValuation, desc: `Mediana de ${comparables.length} negocios comparables` },
       ].filter(Boolean),
       adjustments,
       comparablesCount: comparables.length,
@@ -148,7 +148,7 @@ function restart() {
 <template>
   <div class="animate-fade-in max-w-2xl mx-auto px-1 md:px-0 pb-20">
     <div class="text-center mb-6 md:mb-8">
-      <h1 class="text-xl md:text-2xl font-extrabold text-gray-900">Valoracion de tu Negocio</h1>
+      <h1 class="text-xl md:text-2xl font-extrabold text-gray-900">Valoración de tu Negocio</h1>
       <p class="text-xs md:text-sm text-gray-500 mt-1">Descubre cuanto vale tu negocio basado en datos de mercado reales</p>
     </div>
 
@@ -166,7 +166,7 @@ function restart() {
 
     <!-- Step 1: Basic Info -->
     <div v-if="step === 1" class="c-card p-4 md:p-6 space-y-4 md:space-y-5">
-      <h2 class="text-lg font-bold text-gray-900">Informacion basica</h2>
+      <h2 class="text-lg font-bold text-gray-900">Información básica</h2>
 
       <div>
         <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Sector del negocio *</label>
@@ -202,7 +202,7 @@ function restart() {
 
     <!-- Step 2: Characteristics -->
     <div v-if="step === 2" class="c-card p-4 md:p-6 space-y-4 md:space-y-5">
-      <h2 class="text-lg font-bold text-gray-900">Caracteristicas del local</h2>
+      <h2 class="text-lg font-bold text-gray-900">Características del local</h2>
 
       <div class="space-y-3">
         <label class="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer">
@@ -244,7 +244,7 @@ function restart() {
 
       <div class="flex gap-3">
         <button @click="prevStep" class="c-btn c-btn--outline flex-1 py-3">Atras</button>
-        <button @click="nextStep" class="c-btn c-btn--primary flex-1 py-3">Calcular Valoracion</button>
+        <button @click="nextStep" class="c-btn c-btn--primary flex-1 py-3">Calcular Valoración</button>
       </div>
     </div>
 
@@ -259,7 +259,7 @@ function restart() {
     <div v-if="step === 4 && result" class="space-y-4 md:space-y-6">
       <!-- Main value -->
       <div class="c-card p-5 md:p-8 text-center bg-gradient-to-br from-white to-gray-50">
-        <p class="text-xs font-bold text-gray-400 uppercase mb-2">Valoracion estimada</p>
+        <p class="text-xs font-bold text-gray-400 uppercase mb-2">Valoración estimada</p>
         <p class="text-3xl md:text-4xl font-extrabold text-[var(--color-primary)]">{{ formatEur(result.estimated) }}</p>
         <p class="text-xs md:text-sm text-gray-500 mt-2">
           Rango: <span class="font-bold">{{ formatEur(result.rangeLow) }}</span> — <span class="font-bold">{{ formatEur(result.rangeHigh) }}</span>

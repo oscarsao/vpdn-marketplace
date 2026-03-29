@@ -37,7 +37,7 @@ const indicatorColor = computed(() => {
 
 <template>
   <div v-if="marketContext">
-    <h3 class="text-sm font-bold text-gray-900 mb-3">Posicion de Precio en el Sector</h3>
+    <h3 class="text-sm font-bold text-gray-900 mb-3">Posición de Precio en el Sector</h3>
 
     <!-- Gauge bar -->
     <div class="relative mt-6 mb-2">

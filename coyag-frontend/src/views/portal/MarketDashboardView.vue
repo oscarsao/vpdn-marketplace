@@ -12,11 +12,34 @@ const router = useRouter()
 const loading = ref(true)
 const allBusinesses = ref([])
 
+// Normalize API field names so statisticsEngine functions work correctly
+function normalizeBiz(b) {
+  if (!b || typeof b !== 'object') return b
+  return {
+    ...b,
+    id: b.id_business || b.id,
+    id_code: b.id_code_business || b.id_code,
+    name: b.name_business || b.name,
+    investment: b.investment_business || b.investment,
+    rental: b.rental_business || b.rental,
+    size: b.size_business || b.size,
+    days_on_market: b.days_on_market || 0,
+    times_viewed: b.times_viewed_business || b.times_viewed,
+    province: b.province || { name: b.name_province },
+    municipality: b.municipality || { name: b.name_municipality },
+    business_type: b.business_type || { name: b.name_business_type },
+    sectors: b.sectors || (b.sector ? b.sector.split(', ').map(s => ({ name: s })) : []),
+    multimedia: b.multimedia || (b.business_images_string
+      ? b.business_images_string.split(';').filter(Boolean).map((url, i) => ({ url, id: i }))
+      : []),
+  }
+}
+
 onMounted(async () => {
   try {
     const res = await axios.get('/business/index', { params: { page: 1 } })
-    const raw = res.data?.data || res.data
-    allBusinesses.value = Array.isArray(raw) ? raw : []
+    const raw = res.data?.businesses || res.data?.data || res.data
+    allBusinesses.value = Array.isArray(raw) ? raw.map(normalizeBiz) : []
   } catch (e) {
     console.error(e)
   } finally {
@@ -69,7 +92,7 @@ function formatEur(n) {
         </div>
         <div class="relative z-10">
           <h1 class="text-2xl md:text-3xl font-extrabold mb-2">Dashboard del Mercado</h1>
-          <p class="text-gray-300 text-sm md:text-base mb-6">Vision general del mercado de traspasos, franquicias e inmuebles</p>
+          <p class="text-gray-300 text-sm md:text-base mb-6">Visión general del mercado de traspasos, franquicias e inmuebles</p>
 
           <!-- KPI Cards -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 md:gap-4">
@@ -106,7 +129,7 @@ function formatEur(n) {
           <div class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-indigo-50 flex items-center justify-center mx-auto mb-1.5 md:mb-2">
             <AppIcon name="chart-bar" :size="18" class="text-indigo-600" />
           </div>
-          <p class="text-xs md:text-sm font-bold text-gray-900">Estadisticas</p>
+          <p class="text-xs md:text-sm font-bold text-gray-900">Estadísticas</p>
           <p class="text-[10px] md:text-xs text-gray-400 mt-0.5">Datos de mercado</p>
         </button>
         <button @click="router.push('/valoracion')" class="c-card p-3 md:p-4 text-center hover:shadow-md transition-shadow cursor-pointer border-none bg-white">
@@ -114,7 +137,7 @@ function formatEur(n) {
             <AppIcon name="calculator" :size="18" class="text-green-600" />
           </div>
           <p class="text-xs md:text-sm font-bold text-gray-900">Valorar mi negocio</p>
-          <p class="text-[10px] md:text-xs text-gray-400 mt-0.5">Valoracion gratuita</p>
+          <p class="text-[10px] md:text-xs text-gray-400 mt-0.5">Valoración gratuita</p>
         </button>
         <button @click="router.push('/ai')" class="c-card p-3 md:p-4 text-center hover:shadow-md transition-shadow cursor-pointer border-none bg-white">
           <div class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-purple-50 flex items-center justify-center mx-auto mb-1.5 md:mb-2">
@@ -130,7 +153,7 @@ function formatEur(n) {
         <div class="flex items-center justify-between mb-3 md:mb-4">
           <div>
             <h2 class="text-base md:text-lg font-extrabold text-gray-900">Oportunidades destacadas</h2>
-            <p class="text-[10px] md:text-xs text-gray-400">Negocios con mejor relacion calidad-precio</p>
+            <p class="text-[10px] md:text-xs text-gray-400">Negocios con mejor relación calidad-precio</p>
           </div>
           <button @click="router.push('/listado-general')" class="c-btn c-btn--outline text-xs py-1.5 px-3">Ver todos</button>
         </div>
@@ -144,7 +167,7 @@ function formatEur(n) {
         <div class="flex items-center justify-between mb-3 md:mb-4">
           <div>
             <h2 class="text-base md:text-lg font-extrabold text-gray-900">Sectores del mercado</h2>
-            <p class="text-[10px] md:text-xs text-gray-400">Distribucion por tipo de negocio</p>
+            <p class="text-[10px] md:text-xs text-gray-400">Distribución por tipo de negocio</p>
           </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 md:gap-3">

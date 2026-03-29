@@ -448,7 +448,7 @@ const showFilters = ref(false)
 
               <!-- Price -->
               <div>
-                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Inversion (Precio)</label>
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Inversión (Precio)</label>
                 <div class="flex items-center gap-2">
                   <input v-model.number="minInvestment" @blur="applyPriceFilter" @keyup.enter="applyPriceFilter" type="number" placeholder="Min" class="w-full c-input px-3 py-2 text-sm" />
                   <span class="text-gray-300">-</span>
@@ -470,7 +470,7 @@ const showFilters = ref(false)
 
               <!-- Characteristics -->
               <div>
-                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Caracteristicas</label>
+                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Características</label>
                 <div class="space-y-2">
                   <label class="flex items-center gap-2 cursor-pointer group">
                     <input v-model="smokeOutlet" @change="handleCheckbox('smoke')" type="checkbox" class="w-4 h-4 text-[var(--color-primary)] rounded border-gray-300 focus:ring-[var(--color-primary)]">

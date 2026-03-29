@@ -72,7 +72,7 @@ const eurPerSqm = computed(() => b.value.size > 0 ? Math.round((b.value.investme
               </div>
               <div class="text-right">
                 <p class="text-2xl font-extrabold text-[var(--color-primary)]">{{ formatEur(b.investment) }}</p>
-                <p class="text-xs text-gray-400">Inversion requerida</p>
+                <p class="text-xs text-gray-400">Inversión requerida</p>
               </div>
             </div>
 
@@ -91,7 +91,7 @@ const eurPerSqm = computed(() => b.value.size > 0 ? Math.round((b.value.investme
                 <p class="text-lg font-bold">{{ eurPerSqm ? formatEur(eurPerSqm) : '--' }}</p>
               </div>
               <div class="border border-gray-200 rounded-lg p-3 text-center">
-                <p class="text-xs text-gray-400 mb-1">Score Inversion</p>
+                <p class="text-xs text-gray-400 mb-1">Score Inversión</p>
                 <p class="text-lg font-bold">{{ score }}/100</p>
               </div>
             </div>
@@ -103,7 +103,7 @@ const eurPerSqm = computed(() => b.value.size > 0 ? Math.round((b.value.investme
                 <table class="w-full text-sm">
                   <tr class="border-b border-gray-100"><td class="py-2 text-gray-500">Tipo</td><td class="py-2 font-semibold text-right">{{ b.business_type?.name || 'Traspaso' }}</td></tr>
                   <tr class="border-b border-gray-100"><td class="py-2 text-gray-500">Sector</td><td class="py-2 font-semibold text-right">{{ sectors }}</td></tr>
-                  <tr class="border-b border-gray-100"><td class="py-2 text-gray-500">Ubicacion</td><td class="py-2 font-semibold text-right">{{ location }}</td></tr>
+                  <tr class="border-b border-gray-100"><td class="py-2 text-gray-500">Ubicación</td><td class="py-2 font-semibold text-right">{{ location }}</td></tr>
                   <tr class="border-b border-gray-100"><td class="py-2 text-gray-500">Dias en mercado</td><td class="py-2 font-semibold text-right">{{ b.days_on_market || 0 }}</td></tr>
                   <tr class="border-b border-gray-100"><td class="py-2 text-gray-500">Visitas</td><td class="py-2 font-semibold text-right">{{ b.times_viewed || 0 }}</td></tr>
                   <tr><td class="py-2 text-gray-500">Estado</td><td class="py-2 font-semibold text-right">{{ b.flag_active ? 'Activo' : 'Cerrado' }}</td></tr>
@@ -111,7 +111,7 @@ const eurPerSqm = computed(() => b.value.size > 0 ? Math.round((b.value.investme
               </div>
 
               <div>
-                <h3 class="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Caracteristicas</h3>
+                <h3 class="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Características</h3>
                 <table class="w-full text-sm">
                   <tr class="border-b border-gray-100"><td class="py-2 text-gray-500">Terraza</td><td class="py-2 font-semibold text-right">{{ b.terrace ? 'Si' : 'No' }}</td></tr>
                   <tr class="border-b border-gray-100"><td class="py-2 text-gray-500">Salida de humos</td><td class="py-2 font-semibold text-right">{{ b.smoke_outlet ? 'Si' : 'No' }}</td></tr>
@@ -142,9 +142,9 @@ const eurPerSqm = computed(() => b.value.size > 0 ? Math.round((b.value.investme
 
             <!-- Description -->
             <div>
-              <h3 class="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Descripcion</h3>
+              <h3 class="text-sm font-bold text-gray-900 mb-3 uppercase tracking-wider">Descripción</h3>
               <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                {{ b.description || 'No hay descripcion disponible.' }}
+                {{ b.description || 'No hay descripción disponible.' }}
               </p>
             </div>
 

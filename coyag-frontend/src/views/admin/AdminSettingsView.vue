@@ -39,7 +39,7 @@ function deleteItem(type, id) {
     <!-- Header -->
     <header class="mb-8">
       <h1 class="text-xl md:text-3xl font-extrabold flex items-center gap-3 text-gray-900">
-        <AppIcon name="cog" :size="20" class="text-[var(--color-primary)]" /> Configuracion Global
+        <AppIcon name="cog" :size="20" class="text-[var(--color-primary)]" /> Configuración Global
       </h1>
       <p class="mt-2 text-base text-gray-500 max-w-2xl">
         Administra las tablas maestras del sistema: Ubicaciones geográficas, tipologías de negocio y operativa de asesores y pagos.

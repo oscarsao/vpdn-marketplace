@@ -147,7 +147,7 @@ function formatDate(d) {
 
         <!-- Type Donut -->
         <div class="c-card p-6">
-          <h3 class="text-sm font-bold text-gray-900 mb-4">Distribucion por tipo</h3>
+          <h3 class="text-sm font-bold text-gray-900 mb-4">Distribución por tipo</h3>
           <apexchart v-if="donutSeries.length" type="donut" height="280" :options="donutOptions" :series="donutSeries" />
         </div>
       </div>

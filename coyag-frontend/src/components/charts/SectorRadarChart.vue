@@ -58,7 +58,7 @@ const options = computed(() => ({
 
 <template>
   <div>
-    <h3 class="text-sm font-bold text-gray-900 mb-3">Comparacion de sectores</h3>
+    <h3 class="text-sm font-bold text-gray-900 mb-3">Comparación de sectores</h3>
     <apexchart v-if="series.length" type="radar" height="350" :options="options" :series="series" />
     <p v-else class="text-sm text-gray-400 text-center py-8">Selecciona sectores para comparar</p>
   </div>

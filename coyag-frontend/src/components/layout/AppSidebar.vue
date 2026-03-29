@@ -23,8 +23,8 @@ const publicNavItems = [
   { name: 'Traspasos', route: '/listado-general', icon: 'store' },
   { name: 'Franquicias', route: '/listado-franquicias', icon: 'franchise' },
   { name: 'Inmuebles', route: '/listado-inmuebles', icon: 'real-estate' },
-  { name: 'Estadisticas', route: '/estadisticas', icon: 'chart-bar' },
-  { name: 'Valoracion', route: '/valoracion', icon: 'calculator' },
+  { name: 'Estadísticas', route: '/estadisticas', icon: 'chart-bar' },
+  { name: 'Valoración', route: '/valoracion', icon: 'calculator' },
   { name: 'Mapa', route: '/mapa', icon: 'map-marker' },
 ]
 
@@ -50,8 +50,8 @@ const adminNavItems = computed(() => {
     { name: 'Empleados', route: '/admin/empleados', icon: 'computer' },
     { name: 'Leads', route: '/admin/leads', icon: 'inbox' },
     { name: 'Calendario', route: '/admin/calendario', icon: 'calendar' },
-    { name: 'Estadisticas', route: '/admin/estadisticas', icon: 'chart-line' },
-    { name: 'Configuracion', route: '/admin/configuracion', icon: 'cog' },
+    { name: 'Estadísticas', route: '/admin/estadisticas', icon: 'chart-line' },
+    { name: 'Configuración', route: '/admin/configuracion', icon: 'cog' },
   ]
 })
 

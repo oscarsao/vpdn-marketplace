@@ -190,7 +190,7 @@ const handleImageError = () => { imgError.value = true }
         <p class="text-sm font-medium text-gray-500 flex items-start gap-1.5">
           <AppIcon name="map-pin" :size="14" class="mt-0.5 shrink-0 text-gray-400" />
           <span class="line-clamp-1">
-            {{ b.district_name || b.municipality_name || b.province_name || 'Ubicacion no disponible' }}
+            {{ b.district_name || b.municipality_name || b.province_name || 'Ubicación no disponible' }}
           </span>
         </p>
       </div>
@@ -264,7 +264,7 @@ const handleImageError = () => { imgError.value = true }
     <!-- Quick Compare Overlay (hover) -->
     <Transition name="slide-up">
       <div v-if="showQuickView" class="absolute bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm text-white p-4 z-20 rounded-b-2xl">
-        <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Comparacion rapida</p>
+        <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Comparación rápida</p>
         <div class="grid grid-cols-3 gap-2 text-center">
           <div>
             <p class="text-[10px] text-gray-400">EUR/m2</p>

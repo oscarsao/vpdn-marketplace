@@ -71,6 +71,13 @@ const images = computed(() => business.value?.multimedia || [])
 function nextImg() { currentImg.value = (currentImg.value + 1) % images.value.length }
 function prevImg() { currentImg.value = (currentImg.value - 1 + images.value.length) % images.value.length }
 
+// Process description: convert literal \n sequences to real newlines
+const processedDescription = computed(() => {
+  const raw = business.value?.description || ''
+  if (!raw) return 'No hay descripción disponible.'
+  return raw.replace(/\\n/g, '\n').replace(/\\r/g, '')
+})
+
 const formatMoney = (amount) => {
   if (!amount) return 'Consultar'
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount)
@@ -83,8 +90,22 @@ onMounted(async () => {
     businessStore.fetchBusiness(idCode),
     axios.get('/business/index', { params: { page: 1 } }),
   ])
-  const rawAll = allBizRes.data.businesses || allBizRes.data.data || allBizRes.data
-  allBusinesses.value = Array.isArray(rawAll) ? rawAll : []
+  const rawAll = allBizRes.data?.businesses || allBizRes.data?.data || allBizRes.data
+  allBusinesses.value = Array.isArray(rawAll) ? rawAll.map(b => ({
+    ...b,
+    id: b.id_business || b.id,
+    id_code: b.id_code_business || b.id_code,
+    name: b.name_business || b.name,
+    investment: b.investment_business || b.investment,
+    rental: b.rental_business || b.rental,
+    size: b.size_business || b.size,
+    days_on_market: b.days_on_market || 0,
+    times_viewed: b.times_viewed_business || b.times_viewed,
+    province: b.province || { name: b.name_province },
+    municipality: b.municipality || { name: b.name_municipality },
+    business_type: b.business_type || { name: b.name_business_type },
+    sectors: b.sectors || (b.sector ? b.sector.split(', ').map(s => ({ name: s })) : []),
+  })) : []
   similarBusinesses.value = bizData?.similarBusinesses || []
   businessTimeline.value = bizData?.timeline || []
   isLoading.value = false
@@ -180,15 +201,13 @@ onMounted(async () => {
 
         <!-- Description -->
         <div class="bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-gray-100">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">Descripcion del Negocio</h2>
-          <p class="text-gray-600 leading-relaxed whitespace-pre-line">
-            {{ business.description || 'No hay descripcion disponible.' }}
-          </p>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Descripción del Negocio</h2>
+          <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ processedDescription }}</p>
         </div>
 
         <!-- Investment Score Breakdown -->
         <div v-if="score > 0" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <h2 class="text-xl font-bold text-gray-900 mb-4">Indice de Inversion</h2>
+          <h2 class="text-xl font-bold text-gray-900 mb-4">Índice de Inversión</h2>
           <div class="flex items-center gap-4 mb-6">
             <div class="relative w-20 h-20">
               <svg viewBox="0 0 36 36" class="w-20 h-20">
@@ -203,7 +222,7 @@ onMounted(async () => {
             </div>
             <div>
               <p class="text-lg font-bold" :style="{ color: scoreLabel.color }">{{ scoreLabel.text }}</p>
-              <p class="text-sm text-gray-500">Puntuacion basada en 6 factores clave del mercado</p>
+              <p class="text-sm text-gray-500">Puntuación basada en 6 factores clave del mercado</p>
             </div>
           </div>
           <div class="space-y-2">
@@ -278,13 +297,13 @@ onMounted(async () => {
 
         <!-- Financial Card -->
         <div class="bg-white p-4 md:p-6 rounded-2xl shadow-xl border-t-4 border-[var(--color-primary)]">
-          <h3 class="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">Informacion Financiera</h3>
+          <h3 class="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">Información Financiera</h3>
           <div class="flex justify-between items-center mb-3">
             <span class="text-gray-600 font-semibold">Alquiler / Mes</span>
             <span class="text-xl font-extrabold text-gray-900">{{ formatMoney(business.rental) }}</span>
           </div>
           <div class="flex justify-between items-center bg-red-50 p-4 rounded-xl mb-4">
-            <span class="text-[var(--color-primary)] font-bold">Inversion Total</span>
+            <span class="text-[var(--color-primary)] font-bold">Inversión Total</span>
             <span class="text-2xl font-extrabold text-[var(--color-primary)]">{{ formatMoney(business.investment) }}</span>
           </div>
           <button @click="showContactModal = true" class="w-full c-btn c-btn--primary py-3 text-base shadow-lg shadow-red-500/30 mb-3">

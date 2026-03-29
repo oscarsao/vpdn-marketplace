@@ -61,7 +61,7 @@ function formatEur(n) {
         <span class="w-1.5 h-1.5 bg-indigo-300 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
         <span class="w-1.5 h-1.5 bg-indigo-300 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
       </div>
-      <p class="text-[10px] text-gray-400">Calculando posicion...</p>
+      <p class="text-[10px] text-gray-400">Calculando posición...</p>
     </div>
 
     <div v-else class="space-y-4">
@@ -72,26 +72,26 @@ function formatEur(n) {
           <span class="text-xs font-bold" :style="{ color: percentileColor }">{{ ctx.pricePercentileLabel }}</span>
         </div>
         <div class="relative h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div class="h-full rounded-full transition-all duration-700" :style="{ width: ctx.pricePercentile + '%', backgroundColor: percentileColor }"></div>
+          <div class="h-full rounded-full transition-all duration-700" :style="{ width: (ctx.pricePercentile || 0) + '%', backgroundColor: percentileColor }"></div>
         </div>
-        <p class="text-[10px] text-gray-400 mt-1">Mas barato que el {{ 100 - ctx.pricePercentile }}% del sector</p>
+        <p class="text-[10px] text-gray-400 mt-1">Más barato que el {{ isFinite(ctx.pricePercentile) ? (100 - ctx.pricePercentile) : 'N/A' }}% del sector</p>
       </div>
 
       <!-- EUR/m2 comparison -->
       <div>
         <div class="flex justify-between items-center mb-1.5">
           <span class="text-xs text-gray-500 font-medium">EUR/m2</span>
-          <span class="text-xs font-bold" :class="ctx.sqmDiffPct <= 0 ? 'text-green-600' : 'text-amber-600'">
-            {{ ctx.sqmDiffPct > 0 ? '+' : '' }}{{ ctx.sqmDiffPct }}%
+          <span class="text-xs font-bold" :class="(ctx.sqmDiffPct || 0) <= 0 ? 'text-green-600' : 'text-amber-600'">
+            {{ isFinite(ctx.sqmDiffPct) ? ((ctx.sqmDiffPct > 0 ? '+' : '') + ctx.sqmDiffPct + '%') : 'N/A' }}
           </span>
         </div>
         <div class="flex gap-2 items-end">
           <div class="flex-1">
-            <div class="h-6 bg-gray-900 rounded" :style="{ width: Math.min(100, (ctx.myPricePerSqm / Math.max(ctx.myPricePerSqm, ctx.sectorMedianSqm)) * 100) + '%' }"></div>
-            <span class="text-[10px] text-gray-500 mt-0.5 block">Este negocio: {{ formatEur(ctx.myPricePerSqm) }}/m2</span>
+            <div class="h-6 bg-gray-900 rounded" :style="{ width: Math.min(100, ((ctx.myPricePerSqm || 0) / Math.max(ctx.myPricePerSqm || 1, ctx.sectorMedianSqm || 1)) * 100) + '%' }"></div>
+            <span class="text-[10px] text-gray-500 mt-0.5 block">Este negocio: {{ ctx.myPricePerSqm ? formatEur(ctx.myPricePerSqm) : '0 €' }}/m2</span>
           </div>
           <div class="flex-1">
-            <div class="h-6 bg-gray-300 rounded" :style="{ width: Math.min(100, (ctx.sectorMedianSqm / Math.max(ctx.myPricePerSqm, ctx.sectorMedianSqm)) * 100) + '%' }"></div>
+            <div class="h-6 bg-gray-300 rounded" :style="{ width: Math.min(100, ((ctx.sectorMedianSqm || 0) / Math.max(ctx.myPricePerSqm || 1, ctx.sectorMedianSqm || 1)) * 100) + '%' }"></div>
             <span class="text-[10px] text-gray-500 mt-0.5 block">Sector: {{ formatEur(ctx.sectorMedianSqm) }}/m2</span>
           </div>
         </div>
@@ -100,11 +100,11 @@ function formatEur(n) {
       <!-- Demand Index -->
       <div class="flex items-center justify-between py-2 border-t border-gray-50">
         <div>
-          <span class="text-xs text-gray-500 font-medium block">Indice de demanda</span>
+          <span class="text-xs text-gray-500 font-medium block">Índice de demanda</span>
           <span class="text-[10px] text-gray-400">{{ ctx.demandLabel }}</span>
         </div>
         <div class="text-right">
-          <span class="text-lg font-bold" :style="{ color: demandColor }">{{ ctx.demandIndex }}%</span>
+          <span class="text-lg font-bold" :style="{ color: demandColor }">{{ ctx.demandIndex || 0 }}%</span>
         </div>
       </div>
 
@@ -115,8 +115,8 @@ function formatEur(n) {
           <span class="text-[10px] text-gray-400">vs media sector: {{ ctx.avgSectorDays }}d</span>
         </div>
         <div class="text-right">
-          <span class="text-lg font-bold" :class="ctx.daysDiff <= 0 ? 'text-green-600' : 'text-amber-600'">
-            {{ ctx.daysDiff > 0 ? '+' : '' }}{{ ctx.daysDiff }}d
+          <span class="text-lg font-bold" :class="(ctx.daysDiff || 0) <= 0 ? 'text-green-600' : 'text-amber-600'">
+            {{ ctx.daysDiff != null ? ((ctx.daysDiff > 0 ? '+' : '') + ctx.daysDiff + 'd') : 'N/A' }}
           </span>
         </div>
       </div>

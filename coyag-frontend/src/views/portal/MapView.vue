@@ -9,11 +9,28 @@ const loading = ref(true)
 const allBusinesses = ref([])
 const selectedProvince = ref(null)
 
+// Normalize API field names
+function normalizeBiz(b) {
+  if (!b || typeof b !== 'object') return b
+  return {
+    ...b,
+    id: b.id_business || b.id,
+    id_code: b.id_code_business || b.id_code,
+    name: b.name_business || b.name,
+    investment: b.investment_business || b.investment,
+    rental: b.rental_business || b.rental,
+    size: b.size_business || b.size,
+    province: b.province || { name: b.name_province },
+    municipality: b.municipality || { name: b.name_municipality },
+    business_type: b.business_type || { name: b.name_business_type },
+  }
+}
+
 onMounted(async () => {
   try {
     const res = await axios.get('/business/index', { params: { page: 1 } })
-    const raw = res.data?.data || res.data
-    allBusinesses.value = Array.isArray(raw) ? raw : []
+    const raw = res.data?.businesses || res.data?.data || res.data
+    allBusinesses.value = Array.isArray(raw) ? raw.map(normalizeBiz) : []
   } catch (e) {
     console.error(e)
   } finally {

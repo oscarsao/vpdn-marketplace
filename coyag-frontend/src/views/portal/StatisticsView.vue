@@ -26,6 +26,26 @@ const loading = ref(true)
 const mode = ref('investment') // 'investment' | 'rental'
 const groupBy = ref('sector') // 'sector' | 'price'
 
+// Normalize API field names so statisticsEngine functions work correctly
+function normalizeBiz(b) {
+  if (!b || typeof b !== 'object') return b
+  return {
+    ...b,
+    id: b.id_business || b.id,
+    id_code: b.id_code_business || b.id_code,
+    name: b.name_business || b.name,
+    investment: b.investment_business || b.investment,
+    rental: b.rental_business || b.rental,
+    size: b.size_business || b.size,
+    days_on_market: b.days_on_market || 0,
+    times_viewed: b.times_viewed_business || b.times_viewed,
+    province: b.province || { name: b.name_province },
+    municipality: b.municipality || { name: b.name_municipality },
+    business_type: b.business_type || { name: b.name_business_type },
+    sectors: b.sectors || (b.sector ? b.sector.split(', ').map(s => ({ name: s })) : []),
+  }
+}
+
 // Geographic filters
 const selectedProvince = ref('')
 const selectedMunicipality = ref('')
@@ -37,8 +57,8 @@ onMounted(async () => {
       locationStore.fetchProvinces(),
     ])
     // Get all businesses (use raw data for stats)
-    const bizRaw = bizRes.data?.data || bizRes.data
-    allBusinesses.value = Array.isArray(bizRaw) ? bizRaw : []
+    const bizRaw = bizRes.data?.businesses || bizRes.data?.data || bizRes.data
+    allBusinesses.value = Array.isArray(bizRaw) ? bizRaw.map(normalizeBiz) : []
   } catch (e) {
     console.error(e)
   } finally {
@@ -103,8 +123,8 @@ function formatCurrency(n) {
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 mb-5 md:mb-8">
         <div>
-          <h1 class="text-xl md:text-2xl font-extrabold text-gray-900">Estadisticas del Mercado</h1>
-          <p class="text-xs md:text-sm text-gray-500 mt-1">Analisis en tiempo real de {{ summary.totalBusinesses }} negocios</p>
+          <h1 class="text-xl md:text-2xl font-extrabold text-gray-900">Estadísticas del Mercado</h1>
+          <p class="text-xs md:text-sm text-gray-500 mt-1">Análisis en tiempo real de {{ summary.totalBusinesses }} negocios</p>
         </div>
 
         <!-- Controls -->
@@ -114,7 +134,7 @@ function formatCurrency(n) {
             <button
               @click="mode = 'investment'"
               :class="['px-3 py-1.5 text-xs font-bold rounded-md transition-colors', mode === 'investment' ? 'bg-white shadow text-gray-900' : 'text-gray-500']"
-            >Inversion</button>
+            >Inversión</button>
             <button
               @click="mode = 'rental'"
               :class="['px-3 py-1.5 text-xs font-bold rounded-md transition-colors', mode === 'rental' ? 'bg-white shadow text-gray-900' : 'text-gray-500']"
@@ -210,7 +230,7 @@ function formatCurrency(n) {
 
         <!-- Quartile Summary -->
         <div class="c-card p-4 md:p-6 mt-4 md:mt-6">
-          <h3 class="text-sm font-bold text-gray-900 mb-4">Resumen estadistico — {{ mode === 'investment' ? 'Inversion' : 'Alquiler' }}</h3>
+          <h3 class="text-sm font-bold text-gray-900 mb-4">Resumen estadístico — {{ mode === 'investment' ? 'Inversión' : 'Alquiler' }}</h3>
           <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             <div class="text-center">
               <div class="text-xs font-bold text-gray-400 uppercase">Minimo</div>

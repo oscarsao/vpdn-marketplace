@@ -43,7 +43,7 @@ function scoreColor(score) {
 const barSeries = computed(() => {
   if (items.value.length === 0) return []
   return [
-    { name: 'Inversion', data: items.value.map(b => b.investment || 0) },
+    { name: 'Inversión', data: items.value.map(b => b.investment || 0) },
     { name: 'Alquiler x12', data: items.value.map(b => (b.rental || 0) * 12) },
   ]
 })
@@ -163,15 +163,15 @@ const winnerMetrics = computed(() => {
 
 // Metrics rows for comparison table
 const metrics = computed(() => [
-  { label: 'Inversion', key: 'investment', format: formatPrice, highlight: 'lowest' },
+  { label: 'Inversión', key: 'investment', format: formatPrice, highlight: 'lowest' },
   { label: 'Alquiler/mes', key: 'rental', format: (v) => v ? formatPrice(v) + '/mes' : '--', highlight: 'lowest' },
   { label: 'Superficie', key: 'size', format: (v) => v ? v + ' m2' : '--', highlight: 'highest' },
   { label: 'EUR/m2', key: null, compute: (b) => b.size > 0 ? Math.round((b.investment || 0) / b.size) : 0, format: (v) => v ? formatPrice(v) + '/m2' : '--', highlight: 'lowest' },
   { label: 'Dias en mercado', key: 'days_on_market', format: (v) => v ? v + 'd' : '--', highlight: 'lowest' },
   { label: 'Visitas', key: 'times_viewed', format: (v) => v || 0, highlight: 'highest' },
-  { label: 'Score inversion', key: null, compute: (b) => getScore(b), format: (v) => v + '/100', highlight: 'highest' },
+  { label: 'Score inversión', key: null, compute: (b) => getScore(b), format: (v) => v + '/100', highlight: 'highest' },
   { label: 'Tipo', key: null, compute: (b) => b.business_type?.name || 'Traspaso', format: (v) => v },
-  { label: 'Ubicacion', key: null, compute: (b) => [b.municipality?.name, b.province?.name].filter(Boolean).join(', ') || '--', format: (v) => v },
+  { label: 'Ubicación', key: null, compute: (b) => [b.municipality?.name, b.province?.name].filter(Boolean).join(', ') || '--', format: (v) => v },
   { label: 'Sectores', key: null, compute: (b) => getSectors(b.sectors), format: (v) => v },
 ])
 
@@ -247,7 +247,7 @@ function isBest(metric, item) {
           <!-- Financial Bar Chart -->
           <div v-if="activeChartTab === 'financial'">
             <h3 class="text-sm font-bold text-gray-900 mb-1">Comparativa financiera</h3>
-            <p class="text-xs text-gray-400 mb-4">Inversion total vs coste anual de alquiler</p>
+            <p class="text-xs text-gray-400 mb-4">Inversión total vs coste anual de alquiler</p>
             <apexchart type="bar" height="280" :options="barOptions" :series="barSeries" />
           </div>
 

@@ -273,7 +273,7 @@ function handleSave() {
           <div class="space-y-5 mb-6">
             <div>
               <div class="flex justify-between text-xs mb-1.5">
-                <span class="font-semibold text-gray-600">Inversion minima</span>
+                <span class="font-semibold text-gray-600">Inversión mínima</span>
                 <span class="font-bold text-gray-900">{{ formatEur(minInvestment) }}</span>
               </div>
               <input type="range" v-model.number="minInvestment" min="0" :max="maxInvestment" step="10000" class="w-full" />
@@ -281,7 +281,7 @@ function handleSave() {
 
             <div>
               <div class="flex justify-between text-xs mb-1.5">
-                <span class="font-semibold text-gray-600">Inversion maxima</span>
+                <span class="font-semibold text-gray-600">Inversión máxima</span>
                 <span class="font-bold text-gray-900">{{ formatEur(maxInvestment) }}</span>
               </div>
               <input type="range" v-model.number="maxInvestment" :min="minInvestment" max="2000000" step="10000" class="w-full" />
@@ -304,7 +304,7 @@ function handleSave() {
             </div>
           </div>
 
-          <h3 class="text-sm font-bold text-gray-900 mb-3">Caracteristicas</h3>
+          <h3 class="text-sm font-bold text-gray-900 mb-3">Características</h3>
           <div class="flex gap-4 mb-6">
             <label class="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" v-model="terrace" />

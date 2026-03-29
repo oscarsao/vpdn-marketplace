@@ -60,7 +60,7 @@ function formatMarkdown(text) {
         :class="['flex-1 py-3 text-xs font-semibold transition-colors border-b-2 cursor-pointer bg-transparent',
           activeTab === 'analysis' ? 'text-indigo-600 border-indigo-500' : 'text-gray-400 border-transparent hover:text-gray-600']"
       >
-        <AppIcon name="chart-bar" :size="14" class="inline mr-1" /> Analisis IA
+        <AppIcon name="chart-bar" :size="14" class="inline mr-1" /> Análisis IA
       </button>
       <button
         @click="activeTab = 'chat'"

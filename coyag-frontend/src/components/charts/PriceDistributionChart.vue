@@ -29,7 +29,7 @@ const options = computed(() => makeBarOptions({
 <template>
   <div>
     <h3 class="text-sm font-bold text-gray-900 mb-3">
-      Distribucion de {{ mode === 'investment' ? 'precios' : 'alquileres' }}
+      Distribución de {{ mode === 'investment' ? 'precios' : 'alquileres' }}
     </h3>
     <apexchart type="bar" height="320" :options="options" :series="series" />
   </div>

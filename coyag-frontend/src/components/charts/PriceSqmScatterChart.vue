@@ -89,7 +89,7 @@ const options = computed(() => ({
 <template>
   <div>
     <h3 class="text-sm font-bold text-gray-900 mb-3">
-      Precio vs EUR/m2 — Analisis de mercado
+      Precio vs EUR/m2 — Análisis de mercado
     </h3>
     <p class="text-xs text-gray-500 mb-3">
       Haz clic en un punto para ver los detalles del negocio. Las lineas indican mediana y cuartiles del mercado.

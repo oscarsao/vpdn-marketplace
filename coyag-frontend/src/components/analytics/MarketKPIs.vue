@@ -53,7 +53,7 @@ function formatEUR(n) {
       <div class="flex items-center justify-between">
         <div>
           <div class="text-xs font-bold text-gray-400">Ratio Precio/Alquiler</div>
-          <div class="text-xs text-gray-500">Inversion / alquiler anual</div>
+          <div class="text-xs text-gray-500">Inversión / alquiler anual</div>
         </div>
         <span class="text-lg font-extrabold text-gray-900">{{ priceRentRatio }}x</span>
       </div>
