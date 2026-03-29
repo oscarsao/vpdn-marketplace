@@ -9,7 +9,7 @@ const loading = ref(true)
 onMounted(async () => {
   try {
     const { data } = await axios.get('/notification')
-    notifications.value = data
+    notifications.value = Array.isArray(data) ? data : []
   } catch (e) {
     console.error(e)
   } finally {

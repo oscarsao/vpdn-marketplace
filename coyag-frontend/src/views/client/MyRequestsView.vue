@@ -11,7 +11,7 @@ const newRequest = ref({ type: 'info', business_ref: '', message: '' })
 onMounted(async () => {
   try {
     const { data } = await axios.get('/client-request/my-request')
-    requests.value = data
+    requests.value = Array.isArray(data) ? data : []
   } catch (e) {
     console.error(e)
   } finally {

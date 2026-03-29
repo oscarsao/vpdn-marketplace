@@ -10,7 +10,7 @@ const loading = ref(true)
 onMounted(async () => {
   try {
     const { data } = await axios.get('/favorite')
-    favorites.value = data
+    favorites.value = Array.isArray(data) ? data : []
   } catch (e) {
     console.error(e)
   } finally {

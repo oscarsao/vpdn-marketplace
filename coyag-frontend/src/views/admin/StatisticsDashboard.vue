@@ -14,21 +14,27 @@ const clients = ref([])
 
 onMounted(async () => {
   try {
-    const [statsRes, bizRes, leadsRes, clientsRes] = await Promise.all([
-      axios.get('/statistics'),
-      axios.get('/business/index', { params: { page: 1 } }),
-      axios.get('/leads'),
-      axios.get('/client'),
-    ])
-    stats.value = statsRes.data
-    businesses.value = bizRes.data.data || bizRes.data
-    leads.value = leadsRes.data
-    clients.value = clientsRes.data
-  } catch (e) {
-    console.error(e)
-  } finally {
-    loading.value = false
-  }
+    const { data: statsRaw } = await axios.get('/statistics')
+    stats.value = statsRaw || null
+  } catch (e) { console.error('statistics:', e) }
+
+  try {
+    const bizRes = await axios.get('/business/index', { params: { page: 1 } })
+    const bizRaw = bizRes.data?.data || bizRes.data
+    businesses.value = Array.isArray(bizRaw) ? bizRaw : []
+  } catch (e) { console.error('businesses:', e); businesses.value = [] }
+
+  try {
+    const { data: leadsRaw } = await axios.get('/leads')
+    leads.value = Array.isArray(leadsRaw) ? leadsRaw : []
+  } catch (e) { console.error('leads:', e); leads.value = [] }
+
+  try {
+    const { data: clientsRaw } = await axios.get('/client')
+    clients.value = Array.isArray(clientsRaw) ? clientsRaw : []
+  } catch (e) { console.error('clients:', e); clients.value = [] }
+
+  loading.value = false
 })
 
 const summary = computed(() => computeMarketSummary(businesses.value))

@@ -9,7 +9,7 @@ const filterStatus = ref('all')
 onMounted(async () => {
   try {
     const { data } = await axios.get('/leads')
-    leads.value = data
+    leads.value = Array.isArray(data) ? data : []
   } catch (e) {
     console.error(e)
   } finally {

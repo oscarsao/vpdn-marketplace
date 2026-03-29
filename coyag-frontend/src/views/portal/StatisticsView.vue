@@ -37,7 +37,8 @@ onMounted(async () => {
       locationStore.fetchProvinces(),
     ])
     // Get all businesses (use raw data for stats)
-    allBusinesses.value = bizRes.data.data || bizRes.data
+    const bizRaw = bizRes.data?.data || bizRes.data
+    allBusinesses.value = Array.isArray(bizRaw) ? bizRaw : []
   } catch (e) {
     console.error(e)
   } finally {

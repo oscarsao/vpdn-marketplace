@@ -15,7 +15,8 @@ const allBusinesses = ref([])
 onMounted(async () => {
   try {
     const res = await axios.get('/business/index', { params: { page: 1 } })
-    allBusinesses.value = res.data.data || res.data
+    const raw = res.data?.data || res.data
+    allBusinesses.value = Array.isArray(raw) ? raw : []
   } catch (e) {
     console.error(e)
   } finally {

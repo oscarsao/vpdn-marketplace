@@ -13,19 +13,21 @@ const activityFeed = ref([])
 
 onMounted(async () => {
   try {
-    const [favRes, notifRes, actRes] = await Promise.all([
-      axios.get('/favorite'),
-      axios.get('/notification'),
-      axios.get('/activity-feed'),
-    ])
-    favoritesData.value = favRes.data
-    notificationsData.value = notifRes.data
-    activityFeed.value = actRes.data
-  } catch (e) {
-    console.error(e)
-  } finally {
-    loading.value = false
-  }
+    const { data: favRaw } = await axios.get('/favorite')
+    favoritesData.value = Array.isArray(favRaw) ? favRaw : []
+  } catch (e) { console.error('favorites:', e); favoritesData.value = [] }
+
+  try {
+    const { data: notifRaw } = await axios.get('/notification')
+    notificationsData.value = Array.isArray(notifRaw) ? notifRaw : []
+  } catch (e) { console.error('notifications:', e); notificationsData.value = [] }
+
+  try {
+    const { data: actRaw } = await axios.get('/activity-feed')
+    activityFeed.value = Array.isArray(actRaw) ? actRaw : []
+  } catch (e) { console.error('activity-feed:', e); activityFeed.value = [] }
+
+  loading.value = false
 })
 
 // KPI stats computed from real data

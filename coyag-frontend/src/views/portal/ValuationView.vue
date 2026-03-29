@@ -27,14 +27,21 @@ const provinces = ref([])
 // Load data on mount
 import { onMounted } from 'vue'
 onMounted(async () => {
-  const [sectorsRes, provsRes, bizRes] = await Promise.all([
-    axios.get('/sector'),
-    axios.get('/province'),
-    axios.get('/business/index', { params: { page: 1 } }),
-  ])
-  sectors.value = sectorsRes.data
-  provinces.value = provsRes.data
-  allBusinesses.value = bizRes.data.data || bizRes.data
+  try {
+    const { data: sectorsRaw } = await axios.get('/sector')
+    sectors.value = Array.isArray(sectorsRaw) ? sectorsRaw : []
+  } catch (e) { console.error('sectors:', e); sectors.value = [] }
+
+  try {
+    const { data: provsRaw } = await axios.get('/province')
+    provinces.value = Array.isArray(provsRaw) ? provsRaw : []
+  } catch (e) { console.error('provinces:', e); provinces.value = [] }
+
+  try {
+    const bizRes = await axios.get('/business/index', { params: { page: 1 } })
+    const bizRaw = bizRes.data?.data || bizRes.data
+    allBusinesses.value = Array.isArray(bizRaw) ? bizRaw : []
+  } catch (e) { console.error('businesses:', e); allBusinesses.value = [] }
 })
 
 function nextStep() {
