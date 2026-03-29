@@ -59,11 +59,6 @@ function isActive(item) {
   return route.path === item.route || route.path.startsWith(item.route + '/')
 }
 
-function navigateTo(item) {
-  router.push(item.route)
-  emit('close-mobile')
-}
-
 function logout() {
   auth.logout()
   router.push('/login')
@@ -119,18 +114,18 @@ const sidebarWidth = computed(() => {
       <!-- Public / Portal -->
       <div class="nav-section">
         <div v-if="!collapsed || isMobile" class="nav-group-label">Portal</div>
-        <a
+        <router-link
           v-for="item in publicNavItems"
           :key="item.route"
-          @click.prevent="navigateTo(item)"
+          :to="item.route"
           class="nav-item"
           :class="{ 'nav-item--active': isActive(item) }"
           :title="collapsed && !isMobile ? item.name : ''"
-          href="#"
+          @click="$emit('close-mobile')"
         >
           <AppIcon :name="item.icon" :size="20" class="nav-icon" />
           <span v-if="!collapsed || isMobile" class="nav-label">{{ item.name }}</span>
-        </a>
+        </router-link>
       </div>
 
       <!-- Client -->
@@ -138,18 +133,18 @@ const sidebarWidth = computed(() => {
         <div class="nav-divider"></div>
         <div class="nav-section">
           <div v-if="!collapsed || isMobile" class="nav-group-label">Mi Area</div>
-          <a
+          <router-link
             v-for="item in clientNavItems"
             :key="item.route"
-            @click.prevent="navigateTo(item)"
+            :to="item.route"
             class="nav-item"
             :class="{ 'nav-item--active': isActive(item) }"
             :title="collapsed && !isMobile ? item.name : ''"
-            href="#"
+            @click="$emit('close-mobile')"
           >
             <AppIcon :name="item.icon" :size="20" class="nav-icon" />
             <span v-if="!collapsed || isMobile" class="nav-label">{{ item.name }}</span>
-          </a>
+          </router-link>
         </div>
       </template>
 
@@ -158,18 +153,18 @@ const sidebarWidth = computed(() => {
         <div class="nav-divider"></div>
         <div class="nav-section">
           <div v-if="!collapsed || isMobile" class="nav-group-label">Admin</div>
-          <a
+          <router-link
             v-for="item in adminNavItems"
             :key="item.route"
-            @click.prevent="navigateTo(item)"
+            :to="item.route"
             class="nav-item"
             :class="{ 'nav-item--active': isActive(item) }"
             :title="collapsed && !isMobile ? item.name : ''"
-            href="#"
+            @click="$emit('close-mobile')"
           >
             <AppIcon :name="item.icon" :size="20" class="nav-icon" />
             <span v-if="!collapsed || isMobile" class="nav-label">{{ item.name }}</span>
-          </a>
+          </router-link>
         </div>
       </template>
     </nav>
@@ -195,10 +190,10 @@ const sidebarWidth = computed(() => {
         </button>
       </template>
       <template v-else>
-        <a href="#" @click.prevent="navigateTo({ route: '/login' })" class="nav-item no-underline" :class="{ 'nav-item--active': route.path === '/login' }">
+        <router-link to="/login" class="nav-item no-underline" :class="{ 'nav-item--active': route.path === '/login' }" @click="$emit('close-mobile')">
           <AppIcon name="login" :size="20" class="nav-icon" />
           <span v-if="!collapsed || isMobile" class="nav-label">Ingresar</span>
-        </a>
+        </router-link>
       </template>
     </div>
   </aside>
