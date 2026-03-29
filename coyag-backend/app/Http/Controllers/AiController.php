@@ -167,4 +167,92 @@ class AiController extends Controller
             'data'   => $result,
         ]);
     }
+
+    /**
+     * Find similar businesses based on sector/location/price.
+     *
+     * POST /api/v1/ai/similar
+     */
+    public function similar(Request $request)
+    {
+        try {
+            $businessId = $request->input('business_id');
+            $limit = $request->input('limit', 6);
+            $business = Business::find($businessId);
+            if (!$business) return response()->json(['error' => 'Business not found'], 404);
+
+            $similar = Business::where('id', '!=', $businessId)
+                ->where('business_type_id', $business->business_type_id)
+                ->where('flag_active', 1)
+                ->where('flag_sold', 0)
+                ->when($business->municipality_id, fn($q) => $q->where('municipality_id', $business->municipality_id))
+                ->orderByRaw('ABS(investment - ?) ASC', [$business->investment ?? 0])
+                ->limit($limit)
+                ->get(['id', 'id_code_business', 'name', 'investment', 'rental', 'size', 'lat', 'lng', 'business_images_string']);
+
+            return response()->json(['data' => $similar]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Return market stats for a business's area.
+     *
+     * POST /api/v1/ai/market-context
+     */
+    public function marketContext(Request $request)
+    {
+        try {
+            $businessId = $request->input('business_id');
+            $business = Business::find($businessId);
+            if (!$business) return response()->json(['error' => 'Business not found'], 404);
+
+            $areaBusinesses = Business::where('municipality_id', $business->municipality_id)
+                ->where('business_type_id', $business->business_type_id)
+                ->where('flag_active', 1)
+                ->where('flag_sold', 0)
+                ->get(['investment', 'rental', 'size']);
+
+            $context = [
+                'total_in_area'   => $areaBusinesses->count(),
+                'avg_investment'  => round($areaBusinesses->avg('investment'), 2),
+                'avg_rental'      => round($areaBusinesses->avg('rental'), 2),
+                'avg_size'        => round($areaBusinesses->avg('size'), 2),
+                'min_investment'  => $areaBusinesses->min('investment'),
+                'max_investment'  => $areaBusinesses->max('investment'),
+                'price_position'  => $business->investment
+                    ? round(($areaBusinesses->where('investment', '<', $business->investment)->count() / max($areaBusinesses->count(), 1)) * 100, 1)
+                    : null,
+            ];
+
+            return response()->json(['data' => $context]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * AI-powered search.
+     *
+     * POST /api/v1/ai/search
+     */
+    public function search(Request $request)
+    {
+        try {
+            $query = $request->input('query', '');
+            $businesses = Business::where('flag_active', 1)
+                ->where('flag_sold', 0)
+                ->where(function ($q) use ($query) {
+                    $q->where('name', 'LIKE', "%{$query}%")
+                      ->orWhere('description', 'LIKE', "%{$query}%");
+                })
+                ->limit(20)
+                ->get(['id', 'id_code_business', 'name', 'investment', 'rental', 'size', 'lat', 'lng', 'business_images_string', 'description']);
+
+            return response()->json(['data' => $businesses]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
 }

@@ -19,6 +19,26 @@ class FavoriteController extends Controller
     }
 
     /**
+     * List the authenticated client's favorite businesses.
+     */
+    public function index()
+    {
+        $client = Auth::user()->client;
+        if (!$client) {
+            return response()->json(['errors' => 'No client profile found'], 404);
+        }
+
+        $favorites = $client->businesses()
+            ->where('flag_active', 1)
+            ->get(['businesses.id', 'id_code_business', 'name', 'investment', 'rental', 'size', 'lat', 'lng', 'business_images_string']);
+
+        return response()->json([
+            'status'         => 'success',
+            'favorites_list' => $favorites,
+        ]);
+    }
+
+    /**
      * Handle the incoming request.
      *
      * @param  \Illuminate\Http\Request  $request

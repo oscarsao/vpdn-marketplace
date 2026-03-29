@@ -106,10 +106,14 @@ Route::prefix('v1')->group(function () {
         Route::post('/recommendations', 'recommendations');
         Route::post('/generate-description', 'generateDescription');
         Route::post('/chat', 'chat');
+        Route::post('/similar', 'similar');
+        Route::post('/market-context', 'marketContext');
+        Route::post('/search', 'search');
     });
 
     Route::prefix('auth')->group(function () {
         Route::post('login', [AuthController::class, 'login']);
+        Route::post('register', [ClientController::class, 'store']);
         Route::post('forgot-password', ForgotPasswordController::class);
         Route::post('reset-password', [ResetPasswordController::class, 'reset']);
         Route::group(['middleware' => 'auth:api'], function(){
@@ -516,6 +520,7 @@ Route::group([
         'checkTypeOfUser:cliente'
     ],
 ], function() {
+    Route::get('/', [FavoriteController::class, 'index']);
     Route::post('/', [FavoriteController::class, 'storeFavorite']);
 });
 
@@ -586,12 +591,11 @@ Route::group([
     'prefix'     => 'assigned-advisor',
     'middleware' => [
         'auth:api',
-        'checkTypeOfUser:empleado'
     ],
 ], function() {
     Route::get('/', 'index');
     Route::get('/{idAssignedAdvisor}', 'show')->where('idAssignedAdvisor', '\d+');
-    Route::put('/{idAssignedAdvisor}', 'update')->where('idAssignedAdvisor', '\d+');
+    Route::put('/{idAssignedAdvisor}', 'update')->where('idAssignedAdvisor', '\d+')->middleware('checkTypeOfUser:empleado');
 });
 
 
@@ -1156,4 +1160,19 @@ Route::group([
     Route::put('/{id}', 'update')->where('id', '\d+');
     Route::delete('/{id}', 'destroy')->where('id', '\d+');
 });
+
+// ── Leads placeholder ────────────────────────────────────────
+Route::get('/leads', function () {
+    return response()->json(['data' => [], 'total' => 0]);
+})->middleware(['auth:api', 'checkTypeOfUser:empleado']);
+
+// ── Activity Feed ────────────────────────────────────────────
+Route::get('/activity-feed', function () {
+    $recent = \App\Models\Business::where('flag_active', 1)
+        ->orderBy('updated_at', 'desc')
+        ->limit(10)
+        ->get(['id', 'id_code_business', 'name', 'investment', 'updated_at', 'business_images_string']);
+    return response()->json(['data' => $recent]);
+})->middleware(['auth:api']);
+
 });
