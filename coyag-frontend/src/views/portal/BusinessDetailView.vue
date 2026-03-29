@@ -121,8 +121,47 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="isLoading" class="min-h-screen py-20 flex justify-center items-center">
-    <div class="h-12 w-12 border-4 border-gray-200 border-t-[var(--color-primary)] rounded-full animate-spin"></div>
+  <div v-if="isLoading" class="animate-fade-in pb-20">
+    <!-- Skeleton Image Carousel -->
+    <div class="h-[35vh] md:h-[50vh] w-full bg-gray-200 skeleton"></div>
+
+    <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+      <!-- Main Column Skeleton -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="space-y-3">
+          <div class="flex gap-2">
+            <div class="h-6 w-20 bg-gray-200 rounded skeleton"></div>
+            <div class="h-6 w-24 bg-gray-200 rounded skeleton"></div>
+          </div>
+          <div class="h-8 bg-gray-200 rounded skeleton w-3/4"></div>
+          <div class="h-5 bg-gray-200 rounded skeleton w-1/2"></div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div v-for="i in 4" :key="i" class="space-y-2">
+              <div class="h-3 bg-gray-200 rounded skeleton w-16"></div>
+              <div class="h-6 bg-gray-200 rounded skeleton w-20"></div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-3">
+          <div class="h-6 bg-gray-200 rounded skeleton w-48"></div>
+          <div class="h-4 bg-gray-200 rounded skeleton w-full"></div>
+          <div class="h-4 bg-gray-200 rounded skeleton w-full"></div>
+          <div class="h-4 bg-gray-200 rounded skeleton w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded skeleton w-5/6"></div>
+        </div>
+      </div>
+      <!-- Right Sidebar Skeleton -->
+      <div class="space-y-6">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+          <div class="h-5 bg-gray-200 rounded skeleton w-40"></div>
+          <div class="h-8 bg-gray-200 rounded skeleton w-full"></div>
+          <div class="h-12 bg-gray-200 rounded-xl skeleton w-full"></div>
+          <div class="h-10 bg-gray-200 rounded skeleton w-full"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div v-else-if="business" class="animate-fade-in pb-20">
@@ -154,7 +193,7 @@ onMounted(async () => {
       </div>
     </section>
 
-    <div class="max-w-7xl mx-auto px-3 md:px-4 lg:px-8 mt-5 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 relative items-start">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 mt-6 md:mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 relative items-start">
 
       <!-- Main Left Column -->
       <div class="lg:col-span-2 space-y-5 md:space-y-8 pb-12">
@@ -383,5 +422,14 @@ onMounted(async () => {
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}
+.skeleton {
+  background-color: #E2E8F0;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+@keyframes skeletonPulse {
+  0% { background-color: #E2E8F0; }
+  50% { background-color: #F1F5F9; }
+  100% { background-color: #E2E8F0; }
 }
 </style>

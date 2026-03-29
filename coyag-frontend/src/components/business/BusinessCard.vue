@@ -107,12 +107,12 @@ const handleImageError = () => { imgError.value = true }
 <template>
   <router-link
     :to="`/negocio/${b.id_code || b.id}`"
-    class="bg-white rounded-2xl shadow-sm border border-gray-100 block no-underline group hover:shadow-xl transition-all duration-300 relative overflow-hidden flex flex-col h-full"
+    class="bg-white rounded-2xl shadow-sm border border-gray-100 block no-underline group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden flex flex-col h-full"
     @mouseenter="onMouseEnter"
     @mouseleave="onMouseLeave"
   >
     <!-- Top Image Area -->
-    <div class="relative h-40 md:h-52 bg-gray-100 overflow-hidden shrink-0">
+    <div class="relative h-48 md:h-56 bg-gray-100 overflow-hidden shrink-0">
       <img
         v-if="imageUrl && !imgError"
         :src="imageUrl"
@@ -180,7 +180,7 @@ const handleImageError = () => { imgError.value = true }
     </div>
 
     <!-- Data Content Area -->
-    <div class="p-3.5 md:p-5 flex flex-col flex-1 bg-white relative z-10">
+    <div class="p-4 flex flex-col flex-1 bg-white relative z-10">
 
       <!-- Title & Location -->
       <div class="mb-3 md:mb-4">

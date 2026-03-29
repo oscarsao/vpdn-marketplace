@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import axios from '../../api/axios'
 import AppIcon from '../ui/AppIcon.vue'
@@ -14,10 +14,28 @@ const emit = defineEmits(['toggle-menu'])
 
 const auth = useAuthStore()
 const route = useRoute()
+const router = useRouter()
 
 const pageTitle = computed(() => {
   return route.meta?.pageTitle || 'Portal de Negocios'
 })
+
+// Global search
+const globalSearch = ref('')
+let searchDebounce = null
+
+function handleGlobalSearch() {
+  const q = globalSearch.value.trim()
+  if (!q) return
+  router.push({ path: '/listado-general', query: { q } })
+}
+
+function onSearchInput() {
+  clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(() => {
+    handleGlobalSearch()
+  }, 400)
+}
 
 const notifCount = ref(0)
 
@@ -59,6 +77,9 @@ onMounted(async () => {
           <AppIcon name="search" :size="16" />
         </span>
         <input
+          v-model="globalSearch"
+          @keyup.enter="handleGlobalSearch"
+          @input="onSearchInput"
           type="text"
           placeholder="Buscar negocios..."
           class="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-600 w-52 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 transition-colors"

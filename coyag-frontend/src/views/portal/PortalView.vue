@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useBusinessStore } from '../../stores/business'
 import { useLocationStore } from '../../stores/location'
 import { useAiStore } from '../../stores/ai'
@@ -13,9 +13,20 @@ import { useAlertStore } from '../../stores/alerts'
 import { useSearchStore } from '../../stores/searches'
 
 const route = useRoute()
+const router = useRouter()
 const businessStore = useBusinessStore()
 const locationStore = useLocationStore()
 const aiStore = useAiStore()
+
+// Collapsible filters: open on desktop, closed on mobile
+const isDesktop = ref(window.innerWidth >= 1024)
+const filtersOpen = ref(isDesktop.value)
+function onResize() {
+  isDesktop.value = window.innerWidth >= 1024
+  if (isDesktop.value) filtersOpen.value = true
+}
+onMounted(() => window.addEventListener('resize', onResize))
+onBeforeUnmount(() => window.removeEventListener('resize', onResize))
 
 // AI search results mode
 const aiSearchResults = ref([])
@@ -37,6 +48,24 @@ const terrace = ref(false)
 const outstanding = ref(false)
 const selectedSectors = ref([])
 const sectors = ref([])
+
+// Active filter count for badge
+const activeFilterCount = computed(() => {
+  let count = 0
+  if (selectedProvince.value) count++
+  if (selectedMunicipality.value) count++
+  if (selectedDistrict.value) count++
+  if (selectedNeighborhood.value) count++
+  if (minInvestment.value) count++
+  if (maxInvestment.value) count++
+  if (minRental.value) count++
+  if (maxRental.value) count++
+  if (smokeOutlet.value) count++
+  if (terrace.value) count++
+  if (outstanding.value) count++
+  if (selectedSectors.value.length) count++
+  return count
+})
 
 // Debounce timer
 let searchTimer = null
@@ -106,6 +135,12 @@ onMounted(async () => {
       businessStore.setFilter('sectors', pf.sectors.join(','))
     }
     searchStore.clearPending()
+  }
+
+  // Read global search query from URL (?q=...)
+  if (route.query.q) {
+    searchQuery.value = route.query.q
+    businessStore.setFilter('name', route.query.q)
   }
 
   // Initial load
@@ -342,13 +377,19 @@ const visiblePages = computed(() => {
 // Page title from route
 const pageTitle = computed(() => route.meta.pageTitle || 'Portal de Negocios')
 
-// Mobile filter toggle
-const showFilters = ref(false)
+// Watch for ?q= changes in the route
+watch(() => route.query.q, (newQ) => {
+  if (newQ && newQ !== searchQuery.value) {
+    searchQuery.value = newQ
+    businessStore.setFilter('name', newQ)
+    businessStore.fetchBusinesses()
+  }
+})
 </script>
 
 <template>
   <div class="animate-fade-in">
-    <div class="max-w-[1600px] mx-auto px-4 lg:px-8 pb-12">
+    <div class="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 pb-12">
 
       <!-- Top Actions Bar -->
       <div class="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-3 md:p-4 mb-4 md:mb-6 flex flex-col md:flex-row gap-3 md:gap-4 items-center justify-between">
@@ -374,38 +415,47 @@ const showFilters = ref(false)
         </div>
       </div>
 
-      <div class="flex flex-col lg:flex-row gap-4 md:gap-6 lg:gap-8 items-start">
+      <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
 
-        <!-- Mobile Filter Toggle Button -->
+        <!-- Filter Toggle Button (always visible) -->
         <button
-          @click="showFilters = !showFilters"
-          class="lg:hidden w-full flex items-center justify-center gap-2 bg-white rounded-xl shadow-sm border border-gray-100 p-3 font-bold text-gray-700"
+          @click="filtersOpen = !filtersOpen"
+          class="w-full lg:hidden flex items-center justify-center gap-2 bg-white rounded-xl shadow-sm border border-gray-100 p-3 font-bold text-gray-700 hover:bg-gray-50 transition-colors"
         >
-          <AppIcon name="filter" :size="18" /> Filtros
-          <span v-if="businessStore.activeFiltersCount" class="text-xs bg-[var(--color-primary)] text-white rounded-full w-5 h-5 flex items-center justify-center">{{ businessStore.activeFiltersCount }}</span>
+          <AppIcon name="filter" :size="18" />
+          Filtros
+          <svg :class="['w-4 h-4 transition-transform duration-200', filtersOpen ? 'rotate-180' : '']" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+          <span v-if="activeFilterCount > 0" class="text-xs bg-[var(--color-primary)] text-white rounded-full w-5 h-5 flex items-center justify-center ml-1">{{ activeFilterCount }}</span>
         </button>
 
-        <!-- Mobile Filter Overlay -->
-        <div
-          v-if="showFilters"
-          class="lg:hidden fixed inset-0 z-40 bg-black/50"
-          @click="showFilters = false"
-        ></div>
+        <!-- Mobile Filter Overlay Backdrop -->
+        <Transition name="fade">
+          <div
+            v-if="filtersOpen && !isDesktop"
+            class="fixed inset-0 z-40 bg-black/50"
+            @click="filtersOpen = false"
+          ></div>
+        </Transition>
 
-        <!-- Left Sidebar - Filters -->
+        <!-- Left Sidebar - Filters (collapsible) -->
         <aside
-          class="w-full lg:w-72 shrink-0 space-y-4 lg:sticky lg:top-24"
-          :class="showFilters ? 'fixed inset-x-0 top-0 bottom-0 z-50 overflow-y-auto bg-gray-50 p-4 lg:relative lg:p-0 lg:bg-transparent' : 'hidden lg:block'"
+          class="w-full lg:w-72 shrink-0 space-y-4 lg:sticky lg:top-24 transition-all duration-300"
+          :class="{
+            'fixed inset-x-0 top-0 bottom-0 z-50 overflow-y-auto bg-gray-50 p-4': filtersOpen && !isDesktop,
+            'hidden': !filtersOpen && !isDesktop,
+            'lg:block': true
+          }"
+          v-show="filtersOpen || isDesktop"
         >
           <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <div class="flex justify-between items-center mb-6">
               <h2 class="font-extrabold text-gray-900 flex items-center gap-2">
                 <AppIcon name="filter" :size="18" /> Filtros
-                <span v-if="businessStore.activeFiltersCount" class="text-xs bg-[var(--color-primary)] text-white rounded-full w-5 h-5 flex items-center justify-center">{{ businessStore.activeFiltersCount }}</span>
+                <span v-if="activeFilterCount > 0" class="text-xs bg-[var(--color-primary)] text-white rounded-full w-5 h-5 flex items-center justify-center">{{ activeFilterCount }}</span>
               </h2>
               <div class="flex items-center gap-2">
                 <button @click="clearFilters" class="text-xs font-bold text-red-600 hover:text-red-800 bg-red-50 px-2 py-1 rounded">Limpiar</button>
-                <button @click="showFilters = false" class="lg:hidden text-xs font-bold text-gray-500 hover:text-gray-800 bg-gray-100 px-2 py-1 rounded">Cerrar</button>
+                <button @click="filtersOpen = false" class="lg:hidden text-xs font-bold text-gray-500 hover:text-gray-800 bg-gray-100 px-2 py-1 rounded">Cerrar</button>
               </div>
             </div>
 
@@ -521,15 +571,18 @@ const showFilters = ref(false)
             </p>
           </div>
 
-          <!-- Loading -->
-          <div v-if="businessStore.loading || aiStore.loading" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-6">
-            <div v-for="i in 6" :key="i" class="c-card h-80 md:h-96 flex flex-col p-4 border border-gray-100 shadow-sm relative overflow-hidden">
-               <div class="skeleton w-full h-36 md:h-48 rounded-xl mb-4"></div>
-               <div class="skeleton w-3/4 h-6 mb-2"></div>
-               <div class="skeleton w-1/2 h-4 mb-4"></div>
-               <div class="mt-auto grid grid-cols-2 gap-2">
-                 <div class="skeleton h-10 w-full rounded"></div>
-                 <div class="skeleton h-10 w-full rounded"></div>
+          <!-- Skeleton Loading -->
+          <div v-if="businessStore.loading || aiStore.loading" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div v-for="i in 12" :key="i" class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+               <div class="h-48 md:h-56 bg-gray-200 skeleton"></div>
+               <div class="p-4 space-y-3">
+                 <div class="h-5 bg-gray-200 rounded skeleton w-3/4"></div>
+                 <div class="h-4 bg-gray-200 rounded skeleton w-1/2"></div>
+                 <div class="h-3 bg-gray-200 rounded skeleton w-1/3"></div>
+                 <div class="flex gap-2 pt-2">
+                   <div class="h-6 bg-gray-200 rounded-full skeleton w-16"></div>
+                   <div class="h-6 bg-gray-200 rounded-full skeleton w-20"></div>
+                 </div>
                </div>
             </div>
           </div>
@@ -542,7 +595,7 @@ const showFilters = ref(false)
               <p class="text-gray-500">Intenta con otros terminos de busqueda o amplia los filtros.</p>
               <button @click="clearFilters" class="mt-6 c-btn c-btn--outline">Limpiar busqueda</button>
             </div>
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-6">
+            <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               <div v-for="result in aiSearchResults" :key="result.id" class="relative">
                 <div v-if="result.matchScore" class="absolute -top-2 -left-2 z-10 bg-indigo-600 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
                   {{ result.matchScore }}% match
@@ -563,7 +616,7 @@ const showFilters = ref(false)
             <button @click="clearFilters" class="mt-6 c-btn c-btn--outline">Limpiar filtros y recargar</button>
           </div>
 
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-6">
+          <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             <BusinessCard
               v-for="business in businessStore.businesses"
               :key="business.id"
@@ -621,6 +674,13 @@ const showFilters = ref(false)
   0% { background-color: #E2E8F0; }
   50% { background-color: #F1F5F9; }
   100% { background-color: #E2E8F0; }
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

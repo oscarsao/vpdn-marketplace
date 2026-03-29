@@ -119,7 +119,7 @@ function formatCurrency(n) {
 
 <template>
   <div class="animate-fade-in">
-    <div class="max-w-[1600px] mx-auto">
+    <div class="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 pb-12">
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 mb-5 md:mb-8">
         <div>
@@ -155,9 +155,22 @@ function formatCurrency(n) {
         </div>
       </div>
 
-      <!-- Loading -->
-      <div v-if="loading" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div v-for="i in 4" :key="i" class="c-card p-5"><div class="skeleton h-16 w-full rounded"></div></div>
+      <!-- Skeleton Loading -->
+      <div v-if="loading" class="space-y-6">
+        <!-- KPI Skeletons -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div v-for="i in 5" :key="'kpi-'+i" class="c-card p-4">
+            <div class="skeleton h-3 w-16 rounded mb-2"></div>
+            <div class="skeleton h-7 w-24 rounded"></div>
+          </div>
+        </div>
+        <!-- Chart Skeletons -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div v-for="i in 6" :key="'chart-'+i" class="c-card p-6">
+            <div class="skeleton h-4 w-40 rounded mb-4"></div>
+            <div class="skeleton h-56 w-full rounded"></div>
+          </div>
+        </div>
       </div>
 
       <template v-else>
